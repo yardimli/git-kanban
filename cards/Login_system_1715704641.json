@@ -1,1 +1,10 @@
-{"column":"to-do","title":"Login System","text":"have a settings php where i can add users who can login, add another php file that will let me enter password and it will display the hash so i can manually copy it into the settings php file for now.","owner":"Ekim","backgroundColor":"#D7AEFB","textColor":"#000000","created":"2024-05-14 16:37:21","lastUpdated":"2024-05-14 16:44:50"}
+{
+    "column": "finished",
+    "title": "Login System",
+    "text": "have a settings php where i can add users who can login, add another php file that will let me enter password and it will display the hash so i can manually copy it into the settings php file for now.",
+    "owner": "Ekim",
+    "backgroundColor": "#D7AEFB",
+    "textColor": "#000000",
+    "created": "2024-05-14 16:37:21",
+    "lastUpdated": "2024-05-15 10:21:57"
+}

@@ -1,3 +1,12 @@
+<?php
+	session_start();
+	include_once 'settings.php';
+
+	if (empty($_SESSION['user'])) {
+		header('Location: login.php');
+		exit();
+	}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,9 +33,16 @@
 
 	<div class="container mt-5">
 		<h1 class="text-center">Git Kanban Board</h1>
-		<div class="text-end my-3">
-			<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button>
+		<div>
+			<div class="my-3 d-inline-block">
+				Hello <?php echo $_SESSION['user']; ?>,
+			</div>
+			<div class="my-3 d-inline-block float-end">
+				<a href="logout.php" class="btn btn-danger">Log Out</a>
+				<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button>
+			</div>
 		</div>
+
 		<div class="kanban-board" id="kanbanBoard">
 			<div class="kanban-column">
 				<h3>To-Do</h3>
@@ -49,6 +65,12 @@
 				</ul>
 			</div>
 		</div>
+
+		<!-- Button to add user -->
+		<div class="text-end my-3">
+			<button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+		</div>
+
 	</div>
 
 	<!-- Modal for Adding/Editing Stories -->
@@ -88,6 +110,37 @@
 			</div>
 		</div>
 	</div>
+
+
+	<!-- Modal for Adding User -->
+	<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="addUserForm">
+						<div class="mb-3">
+							<label for="userName" class="form-label">Username</label>
+							<input type="text" class="form-control" id="userName" required>
+						</div>
+						<div class="mb-3">
+							<label for="userPassword" class="form-label">Password</label>
+							<input type="password" class="form-control" id="userPassword" required>
+						</div>
+						<button type="button" class="btn btn-primary" id="generateUser">Generate</button>
+					</form>
+					<div class="mt-3">
+						<pre id="userJsonOutput"></pre>
+						<button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
 </main>
 
 <!-- jQuery and Bootstrap Bundle (includes Popper) -->

@@ -58,7 +58,6 @@ function saveStory() {
 		owner: $('#storyOwner').val(),
 		backgroundColor: $('#storyBackgroundColor').val(),
 		textColor: $('#storyTextColor').val(),
-		column: 'to-do'
 	};
 	$.post('save_story.php', formData, function (response) {
 		$('#storyModal').modal('hide');
@@ -94,10 +93,7 @@ function editStory(filename) {
 function updateStoryColumn(filename, newColumn) {
 	$.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) {
 		const story = JSON.parse(response);
-		const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
-		const card = $(cardSelector);
-		card.detach();
-		$(`.kanban-column-ul[data-column="${newColumn}"]`).append(card);
+		console.log(story);
 	});
 }
 
@@ -122,5 +118,28 @@ $(document).ready(function () {
 			}
 		});
 	});
+	
+	// Add User Modal
+	$('#generateUser').on('click', function () {
+		const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+		const userPassword = $('#userPassword').val();
+		
+		if (userName && userPassword) {
+			$.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+				$('#userJsonOutput').text(response);
+			});
+		}
+	});
+	
+	// Copy to clipboard
+	$('#copyUserJson').on('click', function () {
+		const textToCopy = $('#userJsonOutput').text();
+		navigator.clipboard.writeText(textToCopy).then(function () {
+			alert('Copied to clipboard!');
+		}, function (err) {
+			console.error('Could not copy text: ', err);
+		});
+	});
+	
 	
 });

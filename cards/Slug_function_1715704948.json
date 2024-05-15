@@ -1,1 +1,10 @@
-{"column":"in-progress","title":"For filename add slug like function","text":"dont save file names with spaces and other characters","owner":"Ekim","backgroundColor":"#F28B82","textColor":"#000000","created":"2024-05-14 16:42:28","lastUpdated":"2024-05-14 16:47:37"}
+{
+    "column": "to-do",
+    "title": "For filename add slug like function",
+    "text": "dont save file names with spaces and other characters",
+    "owner": "Ekim",
+    "backgroundColor": "#F28B82",
+    "textColor": "#000000",
+    "created": "2024-05-14 16:42:28",
+    "lastUpdated": "2024-05-15 10:21:46"
+}

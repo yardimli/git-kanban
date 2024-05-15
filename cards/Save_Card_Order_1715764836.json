@@ -1,0 +1,10 @@
+{
+    "column": "to-do",
+    "title": "Save Card Order",
+    "text": "Currently, cards are added to the list in folder scan order. Instead, save the order when cards are dragged and restore the order on load.",
+    "owner": "Ekim",
+    "backgroundColor": "#E6C9A8",
+    "textColor": "#000000",
+    "created": "2024-05-15 10:20:36",
+    "lastUpdated": "2024-05-15 10:21:43"
+}

@@ -1,0 +1,10 @@
+{
+    "column": "to-do",
+    "title": "Merge all AJAX php's",
+    "text": "Merge all AJAX PHP files into one PHP file instead of having multiple PHP files for each task.",
+    "owner": "Ekim",
+    "backgroundColor": "#F28B82",
+    "textColor": "#000000",
+    "created": "2024-05-16 10:01:02",
+    "lastUpdated": "2024-05-16 10:01:15"
+}

@@ -24,6 +24,8 @@ colorOptions.forEach(option => {
 	});
 	colorPalette.append(button);
 });
+//set default color
+$('#colorPalette button').first().click();
 
 function loadStories() {
 	$.get('load_stories.php', function (data) {

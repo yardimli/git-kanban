@@ -1,0 +1,10 @@
+{
+    "column": "to-do",
+    "title": "Archive Story",
+    "text": "add button to archive a story, the story will not show up unless the user clicks on the show Archived stories. Archived stories should have label that shows this.",
+    "owner": "Ekim",
+    "backgroundColor": "#D7AEFB",
+    "textColor": "#000000",
+    "created": "2024-05-16 10:03:03",
+    "lastUpdated": "2024-05-16 10:03:03"
+}

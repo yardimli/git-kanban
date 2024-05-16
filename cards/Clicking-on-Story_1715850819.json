@@ -1,0 +1,10 @@
+{
+    "column": "to-do",
+    "title": "Clicking on Story",
+    "text": "Instead of having an edit button, clicking should bring up the modal directly.",
+    "owner": "Ekim",
+    "backgroundColor": "#AECBFA",
+    "textColor": "#000000",
+    "created": "2024-05-16 10:13:39",
+    "lastUpdated": "2024-05-16 10:13:39"
+}

@@ -1,10 +1,10 @@
 {
-    "column": "to-do",
+    "column": "finished",
     "title": "For filename add slug like function",
     "text": "dont save file names with spaces and other characters",
     "owner": "Ekim",
     "backgroundColor": "#F28B82",
     "textColor": "#000000",
     "created": "2024-05-14 16:42:28",
-    "lastUpdated": "2024-05-15 10:21:46"
+    "lastUpdated": "2024-05-16 10:13:46"
 }

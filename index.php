@@ -14,6 +14,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Git Kanban Board</title>
+
+	<!-- FAVICON AND TOUCH ICONS -->
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+	<link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon">
+
 	<!-- Bootstrap CSS -->
 	<link href="css/bootstrap.min.css" rel="stylesheet">
 	<!-- Custom styles for this template -->
@@ -31,8 +41,8 @@
 
 <main class="py-4">
 
-	<div class="container mt-5">
-		<h1 class="text-center">Git Kanban Board</h1>
+	<div class="container mt-2">
+		<h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1>
 		<div>
 			<div class="my-3 d-inline-block">
 				Hello <?php echo $_SESSION['user']; ?>,

@@ -1,0 +1,10 @@
+{
+    "column": "to-do",
+    "title": "Setup columns in settings.",
+    "text": "Allow user to change default 4 columns and titles in settings. Warn user that changing this can break existing stories and their place.",
+    "owner": "Ekim",
+    "backgroundColor": "#FDCFE8",
+    "textColor": "#000000",
+    "created": "2024-05-16 10:05:28",
+    "lastUpdated": "2024-05-16 10:05:28"
+}

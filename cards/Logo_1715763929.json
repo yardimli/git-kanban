@@ -1,10 +1,10 @@
 {
-    "column": "to-do",
+    "column": "finished",
     "title": "Logo",
     "text": "create a logo and favicon for the project.",
     "owner": "Ekim",
     "backgroundColor": "#AECBFA",
     "textColor": "#000000",
     "created": "2024-05-15 10:05:29",
-    "lastUpdated": "2024-05-15 10:21:37"
+    "lastUpdated": "2024-05-16 10:12:58"
 }

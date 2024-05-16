@@ -1,4 +1,10 @@
 <?php
+
+	function create_slug($string) {
+		$slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
+		return $slug;
+	}
+
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$title = $_POST['title'];
 		$text = $_POST['text'];
@@ -10,7 +16,7 @@
 		$column = 'to-do';
 
 		if (empty($filename)) {
-			$filename = $title . '_' . time() . '.json';
+			$filename = create_slug($title) . '_' . time() . '.json';
 		} else {
 			$filepath = __DIR__ . '/cards/' . $filename;
 			if (file_exists($filepath)) {

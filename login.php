@@ -36,14 +36,13 @@
 <body style=" background: #e91e63 !important;">
 <!-- Login Form -->
 <div class="container">
-	<h1 class="text-center mt-5 text-white">
-		Git Kanban Board
-	</h1>
+	<div class="container mt-2">
 	<div class="row justify-content-center mt-5">
 		<div class="col-lg-4 col-md-6 col-sm-6">
 			<div class="card shadow">
 				<div class="card-title text-center border-bottom">
-					<h2 class="p-3">Login</h2>
+					<h3 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 48px;"> Git Kanban Board</h3>
+					<h4 class="p-3">Login</h4>
 				</div>
 				<div class="card-body">
 					<?php if (isset($error)): ?>

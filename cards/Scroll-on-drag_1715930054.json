@@ -1,0 +1,11 @@
+{
+    "column": "to-do",
+    "order": 0,
+    "title": "Scroll on drag",
+    "text": "If user drags the card to the top or bottom of the screen auto scroll.",
+    "owner": "Ekim",
+    "backgroundColor": "#E6C9A8",
+    "textColor": "#000000",
+    "created": "2024-05-17 08:14:14",
+    "lastUpdated": "2024-05-17 08:14:14"
+}

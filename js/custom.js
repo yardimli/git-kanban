@@ -30,9 +30,26 @@ $('#colorPalette button').first().click();
 function loadStories() {
 	$.get('load_stories.php', function (data) {
 		const stories = JSON.parse(data);
-		stories.forEach(story => {
-			const card = createCard(story);
-			$(`.kanban-column-ul[data-column="${story.column}"]`).append(card);
+		
+		// Group stories by column
+		const groupedStories = stories.reduce((acc, story) => {
+			if (!acc[story.column]) {
+				acc[story.column] = [];
+			}
+			acc[story.column].push(story);
+			return acc;
+		}, {});
+		
+		// Iterate through each column
+		Object.keys(groupedStories).forEach(column => {
+			// Sort stories by order within each column
+			groupedStories[column].sort((a, b) => a.order - b.order);
+			
+			// Append sorted stories to the respective column
+			groupedStories[column].forEach(story => {
+				const card = createCard(story);
+				$(`.kanban-column-ul[data-column="${column}"]`).append(card);
+			});
 		});
 	});
 }
@@ -92,8 +109,8 @@ function editStory(filename) {
 		.catch(error => console.error('Error loading story:', error));
 }
 
-function updateStoryColumn(filename, newColumn) {
-	$.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) {
+function updateStoryColumn(filename, newColumn, newOrder) {
+	$.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) {
 		const story = JSON.parse(response);
 		console.log(story);
 	});
@@ -116,7 +133,13 @@ $(document).ready(function () {
 				const item = evt.item;
 				const newColumn = $(item).closest('.kanban-column-ul').data('column');
 				const filename = $(item).data('filename');
-				updateStoryColumn(filename, newColumn);
+				const newOrder = $(item).index(); // Get the new index/order
+				
+				// Update the order of all items in the column
+				$(item).closest('.kanban-column-ul').children().each(function (index) {
+					const filename = $(this).data('filename');
+					updateStoryColumn(filename, newColumn, index);
+				});
 			}
 		});
 	});

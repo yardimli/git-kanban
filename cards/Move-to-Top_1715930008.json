@@ -1,0 +1,11 @@
+{
+    "column": "to-do",
+    "order": "4",
+    "title": "Move to Top",
+    "text": "when hovering on a stroy card show a button that says \"move to top\"",
+    "owner": "Ekim",
+    "backgroundColor": "#E6C9A8",
+    "textColor": "#000000",
+    "created": "2024-05-17 08:13:28",
+    "lastUpdated": "2024-05-17 08:13:28"
+}

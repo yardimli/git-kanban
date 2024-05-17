@@ -14,6 +14,7 @@
 		$filename = $_POST['filename'];
 		$created = $lastUpdated = date('Y-m-d H:i:s');
 		$column = 'to-do';
+		$order = $_POST['order'] ?? 0;
 
 		if (empty($filename)) {
 			$filename = create_slug($title) . '_' . time() . '.json';
@@ -28,13 +29,14 @@
 
 		$story = [
 			'column' => $column,
+			'order' => $order,
 			'title' => $title,
 			'text' => $text,
 			'owner' => $owner,
 			'backgroundColor' => $backgroundColor,
 			'textColor' => $textColor,
 			'created' => $created,
-			'lastUpdated' => $lastUpdated
+			'lastUpdated' => $lastUpdated,
 		];
 
 		file_put_contents(__DIR__ . '/cards/' . $filename, json_encode($story, JSON_PRETTY_PRINT));

@@ -61,10 +61,9 @@ function formatRelativeTime(dateTime) {
 function createCard(story) {
 	const createdTime = formatRelativeTime(story.created);
 	const updatedTime = formatRelativeTime(story.lastUpdated);
-	return `<li data-filename="${story.filename}"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
+	return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
         <h5>${story.title}</h5>
         <p>${story.text}</p>
-        <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button>
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div></li>`;
 }

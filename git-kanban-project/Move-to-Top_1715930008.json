@@ -1,5 +1,5 @@
 {
-    "column": "to-do",
+    "column": "finished",
     "order": "5",
     "title": "Move to Top",
     "text": "when hovering on a stroy card show a button that says \"move to top\"",
@@ -7,5 +7,5 @@
     "backgroundColor": "#E6C9A8",
     "textColor": "#000000",
     "created": "2024-05-17 08:13:28",
-    "lastUpdated": "2024-05-17 08:13:28"
+    "lastUpdated": "2024-05-19 06:25:33"
 }

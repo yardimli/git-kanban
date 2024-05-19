@@ -32,6 +32,10 @@
 
 	<script>
 		var csrf_token = "{{ csrf_token() }}";
+		var colorOptions = <?php echo json_encode($colorOptions); ?>;
+		var cardsDirName = "<?php echo $cardsDirName; ?>";
+		const users = <?php echo json_encode(array_column($users, 'username')); ?>;
+	
 	</script>
 </head>
 <body>
@@ -42,7 +46,8 @@
 <main class="py-4">
 
 	<div class="container mt-2">
-		<h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1>
+		<h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git
+			Kanban Board</h1>
 		<div>
 			<div class="my-3 d-inline-block">
 				Hello <?php echo $_SESSION['user']; ?>,
@@ -54,26 +59,13 @@
 		</div>
 
 		<div class="kanban-board" id="kanbanBoard">
-			<div class="kanban-column">
-				<h3>To-Do</h3>
-				<ul class="kanban-column-ul" id="to-do-column" data-column="to-do">
-				</ul>
-			</div>
-			<div class="kanban-column">
-				<h3>In-Progress</h3>
-				<ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress">
-				</ul>
-			</div>
-			<div class="kanban-column">
-				<h3>Finished</h3>
-				<ul class="kanban-column-ul" id="finished-column" data-column="finished">
-				</ul>
-			</div>
-			<div class="kanban-column">
-				<h3>Parking-Lot</h3>
-				<ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot">
-				</ul>
-			</div>
+			<?php foreach ($columns as $column): ?>
+				<div class="kanban-column">
+					<h3><?php echo htmlspecialchars($column['title']); ?></h3>
+					<ul class="kanban-column-ul" id="<?php echo htmlspecialchars($column['id']); ?>-column" data-column="<?php echo htmlspecialchars($column['id']); ?>">
+					</ul>
+				</div>
+			<?php endforeach; ?>
 		</div>
 
 		<!-- Button to add user -->
@@ -104,7 +96,9 @@
 						</div>
 						<div class="mb-3">
 							<label for="storyOwner" class="form-label">Owner</label>
-							<input type="text" class="form-control" id="storyOwner" required>
+							<select class="form-control" id="storyOwner" required>
+								<!-- Options will be populated dynamically -->
+							</select>
 						</div>
 						<div class="mb-3">
 							<label class="form-label">Background Color</label>

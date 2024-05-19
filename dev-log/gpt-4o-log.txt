@@ -2351,3 +2351,1341 @@ function loadStories() {
    - After sorting the stories within each column, they are appended to the respective column's unordered list (`ul`) in the DOM.
 
 This ensures that the stories are grouped by their columns and sorted within each column before being displayed on the Kanban board.
+------------------------------------------------------------
+<?php session_start(); include_once 'settings.php'; if (empty($_SESSION['user'])) { header('Location: login.php'); exit(); } ?> <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- FAVICON AND TOUCH ICONS --> <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon"> <link rel="icon" href="images/favicon.ico" type="image/x-icon"> <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png"> <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png"> <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png"> <link rel="apple-touch-icon" href="images/apple-touch-icon.png"> <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon"> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-2"> <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1> <div> <div class="my-3 d-inline-block"> Hello <?php echo $_SESSION['user']; ?>, </div> <div class="my-3 d-inline-block float-end"> <a href="logout.php" class="btn btn-danger">Log Out</a> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
+
+
+
+// Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); //set default color $('#colorPalette button').first().click(); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); // Group stories by column const groupedStories = stories.reduce((acc, story) => { if (!acc[story.column]) { acc[story.column] = []; } acc[story.column].push(story); return acc; }, {}); // Iterate through each column Object.keys(groupedStories).forEach(column => { // Sort stories by order within each column groupedStories[column].sort((a, b) => a.order - b.order); // Append sorted stories to the respective column groupedStories[column].forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${column}"]`).append(card); }); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}"> <h5>${story.title}</h5> <p>${story.text}</p> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p> </div></li>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); } function updateStoryColumn(filename, newColumn, newOrder) { $.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) { const story = JSON.parse(response); console.log(story); }); } $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); // Initialize Sortable for each kanban column $('.kanban-column-ul').each(function () { new Sortable(this, { group: 'kanban', // set the same group for all columns animation: 150, onEnd: function (evt) { const item = evt.item; const newColumn = $(item).closest('.kanban-column-ul').data('column'); const filename = $(item).data('filename'); const newOrder = $(item).index(); // Get the new index/order // Update the order of all items in the column $(item).closest('.kanban-column-ul').children().each(function (index) { const filename = $(this).data('filename'); updateStoryColumn(filename, newColumn, index); }); } }); }); // Add User Modal $('#generateUser').on('click', function () { const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, ''); const userPassword = $('#userPassword').val(); if (userName && userPassword) { $.post('generate_user.php', { username: userName, password: userPassword }, function (response) { $('#userJsonOutput').text(response); }); } }); // Copy to clipboard $('#copyUserJson').on('click', function () { const textToCopy = $('#userJsonOutput').text(); navigator.clipboard.writeText(textToCopy).then(function () { alert('Copied to clipboard!'); }, function (err) { console.error('Could not copy text: ', err); }); }); });
+
+
+
+when dragging cards and the mouse is close to the top or bottom of the screen scroll the browser
+------------------------------------------------------------
+To enable auto-scrolling of the browser window when dragging cards close to the top or bottom of the screen, you can make use of the `autoScroll` option provided by the SortableJS library. This option allows the page to scroll when dragging items near the edges of the viewport.
+
+Here’s how you can modify the existing Sortable initialization to include auto-scrolling:
+
+1. Add the `autoScroll` option to the Sortable initialization.
+2. Set the `scroll` option to `true` to enable scrolling.
+3. Adjust the `scrollSensitivity` and `scrollSpeed` as needed.
+
+Below is the updated code snippet for initializing Sortable with the auto-scroll feature:
+
+```javascript
+$(document).ready(function () {
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll enabled
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            scroll: true, // Enable scrolling
+            scrollSensitivity: 100, // Distance in pixels from the edge of the viewport to start scrolling
+            scrollSpeed: 10, // Speed at which the page scrolls
+            onEnd: function (evt) {
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+This setup will ensure that the browser window scrolls automatically when you drag items near the edges of the screen, enhancing the user experience when managing the Kanban board.
+------------------------------------------------------------
+that is for scrolling the container, but i use the whole document and dont have overflow:auto
+------------------------------------------------------------
+Got it. If you want to enable auto-scrolling for the entire document when dragging items to the top or bottom of the viewport, you can use the `onMove` event handler provided by SortableJS and manually control the scrolling of the document using `window.scrollBy`.
+
+Here is the updated code to achieve this functionality:
+
+```javascript
+$(document).ready(function () {
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll for the document
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            onEnd: function (evt) {
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            },
+            onMove: function (evt) {
+                const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
+                const scrollSpeed = 20; // Speed at which the page scrolls
+
+                const mouseY = evt.originalEvent.clientY;
+                const viewportHeight = window.innerHeight;
+
+                if (mouseY < scrollSensitivity) {
+                    // Scroll up
+                    window.scrollBy(0, -scrollSpeed);
+                } else if (mouseY > viewportHeight - scrollSensitivity) {
+                    // Scroll down
+                    window.scrollBy(0, scrollSpeed);
+                }
+            }
+        });
+    });
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+In this code:
+
+1. The `onMove` event handler checks the Y-coordinate of the mouse pointer (`mouseY`) during the drag operation.
+2. It then compares this coordinate with the `scrollSensitivity` value to determine if the mouse pointer is near the top or bottom edge of the viewport.
+3. If the mouse pointer is within the sensitivity range, it scrolls the document up or down by the `scrollSpeed` value.
+
+This way, the entire document will scroll up or down as you drag items near the top or bottom of the viewport, making it easier to manage items on the Kanban board.
+------------------------------------------------------------
+that event only fires if cards are swapping
+------------------------------------------------------------
+To enable auto-scrolling for the entire document when dragging items near the top or bottom of the viewport and to ensure it works continuously as the item is being dragged, you can use a combination of `mousemove` event listeners and some custom logic.
+
+Here's how you can achieve this:
+
+1. Attach a `mousemove` event listener to the document to monitor the mouse position during the drag operation.
+2. Use `requestAnimationFrame` to perform smooth scrolling.
+
+Here's the updated code to include this functionality:
+
+```javascript
+$(document).ready(function () {
+    let isDragging = false;
+    let scrollInterval;
+
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll for the document
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            onStart: function () {
+                isDragging = true;
+                startAutoScroll();
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                stopAutoScroll();
+
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    function startAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+        }
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    function stopAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+            scrollInterval = null;
+        }
+    }
+
+    function autoScroll() {
+        if (!isDragging) return;
+
+        const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
+        const scrollSpeed = 20; // Speed at which the page scrolls
+        const mouseY = event.clientY;
+        const viewportHeight = window.innerHeight;
+
+        if (mouseY < scrollSensitivity) {
+            // Scroll up
+            window.scrollBy(0, -scrollSpeed);
+        } else if (mouseY > viewportHeight - scrollSensitivity) {
+            // Scroll down
+            window.scrollBy(0, scrollSpeed);
+        }
+
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+In this code:
+
+1. The `onStart` event of the Sortable instance sets the `isDragging` flag to `true` and starts the `autoScroll` function.
+2. The `onEnd` event sets `isDragging` to `false` and stops the `autoScroll` function.
+3. The `autoScroll` function checks the mouse position relative to the viewport and scrolls the document if the mouse is near the top or bottom edge.
+4. `requestAnimationFrame` is used to ensure smooth scrolling.
+
+This ensures that the document scrolls smoothly as you drag items near the edges of the viewport, providing a better user experience.
+------------------------------------------------------------
+TypeError: Cannot read properties of undefined (reading 'clientY')
+    at autoScroll (custom.js:140:23)
+------------------------------------------------------------
+The error occurs because the `event` object is not passed to the `autoScroll` function. To fix this, you need to pass the `mousemove` event to the `autoScroll` function so it can read the `clientY` property.
+
+Here's how you can update the code to pass the event object correctly:
+
+1. Attach a `mousemove` event listener to the document.
+2. Within the `mousemove` event handler, call the `autoScroll` function and pass the event object.
+
+Here's the updated code:
+
+```javascript
+$(document).ready(function () {
+    let isDragging = false;
+    let scrollInterval;
+
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll for the document
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            onStart: function () {
+                isDragging = true;
+                document.addEventListener('mousemove', autoScroll);
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                document.removeEventListener('mousemove', autoScroll);
+
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    function autoScroll(event) {
+        if (!isDragging) return;
+
+        const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
+        const scrollSpeed = 20; // Speed at which the page scrolls
+        const mouseY = event.clientY;
+        const viewportHeight = window.innerHeight;
+
+        if (mouseY < scrollSensitivity) {
+            // Scroll up
+            window.scrollBy(0, -scrollSpeed);
+        } else if (mouseY > viewportHeight - scrollSensitivity) {
+            // Scroll down
+            window.scrollBy(0, scrollSpeed);
+        }
+
+        scrollInterval = requestAnimationFrame(() => autoScroll(event));
+    }
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+In this updated code:
+
+1. The `mousemove` event listener is added to the document when dragging starts (`onStart`).
+2. The `mousemove` event listener is removed when dragging ends (`onEnd`).
+3. The `autoScroll` function now takes the `event` object as an argument to access `event.clientY`.
+4. `requestAnimationFrame` is used to ensure smooth scrolling by recursively calling `autoScroll`.
+
+This should resolve the `TypeError` and enable smooth auto-scrolling of the document when dragging items near the top or bottom of the viewport.
+------------------------------------------------------------
+document.addEventListener('mousemove', autoScroll);
+doesnt get called
+------------------------------------------------------------
+It looks like the `mousemove` event listener isn't being triggered because the element being dragged might be capturing the mouse events. To ensure that the document-level `mousemove` event is captured correctly, you can use a combination of `mousemove` and `mousemove` event listeners within the SortableJS configuration.
+
+Here’s a revised approach that ensures the `mousemove` event is captured during the dragging process:
+
+1. Use the `onMove` event of SortableJS to call the `autoScroll` function.
+2. Use the `mousemove` event listener on the document to continuously update the mouse position.
+
+Here's the updated code:
+
+```javascript
+$(document).ready(function () {
+    let isDragging = false;
+    let lastMouseY = 0;
+    let scrollInterval;
+
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll for the document
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            onStart: function () {
+                isDragging = true;
+                startAutoScroll();
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                stopAutoScroll();
+
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            },
+            onMove: function (evt) {
+                lastMouseY = evt.originalEvent.clientY;
+            }
+        });
+    });
+
+    function startAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+        }
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    function stopAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+            scrollInterval = null;
+        }
+    }
+
+    function autoScroll() {
+        if (!isDragging) return;
+
+        const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
+        const scrollSpeed = 20; // Speed at which the page scrolls
+        const viewportHeight = window.innerHeight;
+
+        if (lastMouseY < scrollSensitivity) {
+            // Scroll up
+            window.scrollBy(0, -scrollSpeed);
+        } else if (lastMouseY > viewportHeight - scrollSensitivity) {
+            // Scroll down
+            window.scrollBy(0, scrollSpeed);
+        }
+
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+In this code:
+
+1. The `onMove` event of SortableJS updates the global `lastMouseY` variable with the current mouse Y-coordinate.
+2. The `startAutoScroll` function initializes the `autoScroll` function using `requestAnimationFrame`.
+3. The `stopAutoScroll` function cancels the scrolling when dragging stops.
+4. The `autoScroll` function uses the `lastMouseY` variable to determine whether to scroll the document up or down.
+
+This should ensure that the auto-scrolling functionality works correctly while dragging items near the edges of the viewport.
+------------------------------------------------------------
+i want it to run outside the sortable, sortable should only set the isdragging boolean
+------------------------------------------------------------
+Got it! You want the auto-scrolling to be controlled independently of Sortable, with Sortable only setting the `isDragging` flag. Here's how you can achieve that:
+
+1. Attach a `mousemove` event listener to the document to monitor the mouse position.
+2. Continuously check the `isDragging` flag and perform scrolling if necessary.
+
+Here's the updated code:
+
+```javascript
+$(document).ready(function () {
+    let isDragging = false;
+    let lastMouseY = 0;
+    let scrollInterval;
+
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column with auto-scroll for the document
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            onStart: function () {
+                isDragging = true;
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            },
+            onMove: function (evt) {
+                lastMouseY = evt.originalEvent.clientY;
+            }
+        });
+    });
+
+    // Attach mousemove event to track mouse position
+    document.addEventListener('mousemove', function (event) {
+        lastMouseY = event.clientY;
+    });
+
+    // Auto-scroll function
+    function autoScroll() {
+        if (!isDragging) return;
+
+        const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
+        const scrollSpeed = 20; // Speed at which the page scrolls
+        const viewportHeight = window.innerHeight;
+
+        if (lastMouseY < scrollSensitivity) {
+            // Scroll up
+            window.scrollBy(0, -scrollSpeed);
+        } else if (lastMouseY > viewportHeight - scrollSensitivity) {
+            // Scroll down
+            window.scrollBy(0, scrollSpeed);
+        }
+
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    // Start the auto-scroll loop
+    startAutoScroll();
+
+    function startAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+        }
+        scrollInterval = requestAnimationFrame(autoScroll);
+    }
+
+    function stopAutoScroll() {
+        if (scrollInterval) {
+            cancelAnimationFrame(scrollInterval);
+            scrollInterval = null;
+        }
+    }
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+});
+```
+
+In this solution:
+
+1. The `mousemove` event listener on the document updates the `lastMouseY` variable with the current mouse Y-coordinate.
+2. The `autoScroll` function continuously checks the `isDragging` flag and performs the scrolling if necessary.
+3. `requestAnimationFrame` is used to ensure smooth scrolling by recursively calling `autoScroll`.
+4. The `onStart` and `onEnd` events of Sortable only set the `isDragging` flag to `true` and `false`, respectively.
+5. The `startAutoScroll` function kicks off the auto-scrolling loop.
+
+This setup ensures that the auto-scrolling runs independently of Sortable and correctly scrolls the document based on the mouse position when dragging items near the top or bottom of the viewport.
+------------------------------------------------------------
+generally it didnt work it keeps suggesting back and forth with animation frames that just stack up and slow down the browser, or putting events back into the sortable which isnt working properly. So I'll add my own logic to the autoScroll function. Wasted an hour on something that should have been simple.
+------------------------------------------------------------
+when mouse hovers over a card show a button that when clicked will move the card to the top of the list.
+------------------------------------------------------------
+To achieve this functionality, we need to make a few modifications to your existing code. Specifically, we will:
+
+1. Add a button that appears when you hover over a card.
+2. Implement JavaScript logic to move the card to the top of the list when the button is clicked.
+
+Here's how you can do it:
+
+### HTML and CSS Modifications
+
+First, add the necessary CSS to make the button appear only on hover:
+
+```css
+<style>
+    .kanban-card {
+        position: relative;
+    }
+    .kanban-card .move-to-top-btn {
+        display: none;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 10;
+    }
+    .kanban-card:hover .move-to-top-btn {
+        display: block;
+    }
+</style>
+```
+
+### JavaScript Modifications
+
+Next, modify the `createCard` function to include the new button:
+
+```javascript
+function createCard(story) {
+    const createdTime = formatRelativeTime(story.created);
+    const updatedTime = formatRelativeTime(story.lastUpdated);
+    return `
+        <li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;">
+            <div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
+                <button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
+                <h5>${story.title}</h5>
+                <p>${story.text}</p>
+                <p>
+                    <strong>Owner:</strong> ${story.owner} <br>
+                    <strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br>
+                    <strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span>
+                </p>
+            </div>
+        </li>`;
+}
+```
+
+### Adding the Move to Top Function
+
+Now, add the `moveToTop` function to handle the card move:
+
+```javascript
+function moveToTop(event, filename) {
+    event.stopPropagation(); // Prevent triggering the editStory function
+
+    const card = $(`.kanban-card[data-filename="${filename}"]`).closest('li');
+    const column = card.closest('.kanban-column-ul');
+
+    // Move card to the top of the column
+    card.prependTo(column);
+
+    // Update the order of all items in the column
+    column.children().each(function (index) {
+        const filename = $(this).data('filename');
+        updateStoryColumn(filename, column.data('column'), index);
+    });
+}
+```
+
+### Update the onEnd Function in Sortable Initialization
+
+Ensure the `onEnd` function updates the order correctly after dragging:
+
+```javascript
+onEnd: function (evt) {
+    isDragging = false;
+    console.log('Dragging ended');
+    const item = evt.item;
+    const newColumn = $(item).closest('.kanban-column-ul').data('column');
+    const filename = $(item).data('filename');
+    const newOrder = $(item).index(); // Get the new index/order
+
+    // Update the order of all items in the column
+    $(item).closest('.kanban-column-ul').children().each(function (index) {
+        const filename = $(this).data('filename');
+        updateStoryColumn(filename, newColumn, index);
+    });
+}
+```
+
+### Final Script Update
+
+Ensure the whole script is properly wrapped and ready for execution:
+
+```javascript
+$(document).ready(function () {
+    loadStories();
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            scroll: false,
+            onStart: function () {
+                isDragging = true;
+                console.log('Dragging started');
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                console.log('Dragging ended');
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+
+    // Attach mousemove event to track mouse position
+    document.addEventListener('drag', function (event) {
+        if (lastMouseY === event.clientY) return;
+        lastMouseY = event.clientY;
+        autoScroll();
+    });
+});
+```
+
+By following these steps, you will add a button that appears when hovering over a card, and clicking this button will move the card to the top of its column.
+------------------------------------------------------------
+i want to move the color definition into settings php and have it added to the javascript from index.php
+------------------------------------------------------------
+To move the color definitions into `settings.php` and dynamically add them to the JavaScript in `index.php`, you can follow these steps:
+
+1. **Define color options in `settings.php`:**
+    ```php
+    <?php
+    $users = [
+        ['username' => 'Admin', 'password' => '$2y$10$kMdhKRcawdXC9JhayVRhS.mZ/T5Va7K1wfck7FcM6uff1BGfd1qym'],
+        ['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
+    ];
+
+    $colorOptions = [
+              ['background' => '#F28B82', 'text' => '#000000'],
+              ['background' => '#FBBC04', 'text' => '#000000'],
+              ['background' => '#FFF475', 'text' => '#000000'],
+              ['background' => '#CCFF90', 'text' => '#000000'],
+              ['background' => '#A7FFEB', 'text' => '#000000'],
+              ['background' => '#CBF0F8', 'text' => '#000000'],
+              ['background' => '#AECBFA', 'text' => '#000000'],
+              ['background' => '#D7AEFB', 'text' => '#000000'],
+              ['background' => '#FDCFE8', 'text' => '#000000'],
+              ['background' => '#E6C9A8', 'text' => '#000000'],
+          ];
+    ?>
+    ```
+
+2. **Pass the color options to `index.php`:**
+    ```php
+    <?php
+    session_start();
+    include_once 'settings.php';
+
+    if (empty($_SESSION['user'])) {
+        header('Location: login.php');
+        exit();
+    }
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Git Kanban Board</title>
+        <!-- FAVICON AND TOUCH ICONS -->
+        <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+        <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+        <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon">
+        <!-- Bootstrap CSS -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <link href="css/custom.css" rel="stylesheet">
+        <!-- If you have custom CSS -->
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <script>
+            var csrf_token = "{{ csrf_token() }}";
+            var colorOptions = <?php echo json_encode($colorOptions); ?>;
+        </script>
+    </head>
+    <body>
+    <!-- The rest of the HTML content -->
+    ```
+
+3. **Modify your JavaScript in `custom.js` to use the `colorOptions` variable:**
+    ```javascript
+    $(document).ready(function () {
+        // Create color buttons
+        const colorPalette = $('#colorPalette');
+        colorOptions.forEach(option => {
+            const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
+            button.on('click', function () {
+                $('#storyBackgroundColor').val(option.background);
+                $('#storyTextColor').val(option.text);
+                $('#colorPalette button').removeClass('active');
+                $(this).addClass('active');
+            });
+            colorPalette.append(button);
+        });
+
+        // Set default color
+        $('#colorPalette button').first().click();
+
+        // The rest of your jQuery ready function
+        loadStories();
+        $('#storyForm').on('submit', function (e) {
+            e.preventDefault();
+            saveStory();
+        });
+        // Initialize Sortable for each kanban column
+        $('.kanban-column-ul').each(function () {
+            new Sortable(this, {
+                group: 'kanban', // set the same group for all columns
+                animation: 150,
+                scroll: false,
+                onStart: function () {
+                    isDragging = true;
+                    console.log('Dragging started');
+                },
+                onEnd: function (evt) {
+                    isDragging = false;
+                    console.log('Dragging ended');
+                    const item = evt.item;
+                    const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                    const filename = $(item).data('filename');
+                    const newOrder = $(item).index(); // Get the new index/order
+                    // Update the order of all items in the column
+                    $(item).closest('.kanban-column-ul').children().each(function (index) {
+                        const filename = $(this).data('filename');
+                        updateStoryColumn(filename, newColumn, index);
+                    });
+                }
+            });
+        });
+        // Add User Modal
+        $('#generateUser').on('click', function () {
+            const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+            const userPassword = $('#userPassword').val();
+            if (userName && userPassword) {
+                $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                    $('#userJsonOutput').text(response);
+                });
+            }
+        });
+        // Copy to clipboard
+        $('#copyUserJson').on('click', function () {
+            const textToCopy = $('#userJsonOutput').text();
+            navigator.clipboard.writeText(textToCopy).then(function () {
+                alert('Copied to clipboard!');
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        });
+        // Attach mousemove event to track mouse position
+        document.addEventListener('drag', function (event) {
+            if (lastMouseY === event.clientY) return;
+            lastMouseY = event.clientY;
+            autoScroll();
+        });
+    });
+    ```
+
+By doing this, you will have moved the color definitions into `settings.php` and dynamically passed them to your JavaScript code in `index.php`. This approach keeps your settings centralized and allows you to easily modify the color options in one place.
+------------------------------------------------------------
+Allow user to change default 4 columns and titles in from settings.php
+------------------------------------------------------------
+To allow users to change the default four columns and their titles from the `settings.php` file, you'll need to update both the `settings.php` file and your main HTML/PHP file to dynamically generate the columns based on the settings. Here is how you can do it:
+
+### Update `settings.php`
+First, add the configuration for columns in `settings.php`.
+
+```php
+<?php
+// json string for users, Admin password is 123456
+$users = [
+    ['username' => 'Admin', 'password' => '$2y$10$kMdhKRcawdXC9JhayVRhS.mZ/T5Va7K1wfck7FcM6uff1BGfd1qym'],
+    ['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
+];
+
+// Define default columns
+$columns = [
+    ['id' => 'to-do', 'title' => 'To-Do'],
+    ['id' => 'in-progress', 'title' => 'In-Progress'],
+    ['id' => 'finished', 'title' => 'Finished'],
+    ['id' => 'parking-lot', 'title' => 'Parking-Lot'],
+];
+?>
+```
+
+### Update Main HTML/PHP File
+Modify your main HTML/PHP file to read these settings and generate the Kanban columns dynamically.
+
+```php
+<?php
+session_start();
+include_once 'settings.php';
+if (empty($_SESSION['user'])) {
+    header('Location: login.php');
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Git Kanban Board</title>
+    <!-- FAVICON AND TOUCH ICONS -->
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon">
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="css/custom.css" rel="stylesheet">
+    <!-- If you have custom CSS -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        var csrf_token = "{{ csrf_token() }}";
+    </script>
+</head>
+<body>
+<header>
+    <!-- Bootstrap Navbar or custom header content here -->
+</header>
+<main class="py-4">
+    <div class="container mt-2">
+        <h1 style="margin:10px;" class="text-center">
+            <img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board
+        </h1>
+        <div>
+            <div class="my-3 d-inline-block">Hello <?php echo $_SESSION['user']; ?>,</div>
+            <div class="my-3 d-inline-block float-end">
+                <a href="logout.php" class="btn btn-danger">Log Out</a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button>
+            </div>
+        </div>
+        <div class="kanban-board" id="kanbanBoard">
+            <?php foreach ($columns as $column): ?>
+                <div class="kanban-column">
+                    <h3><?php echo htmlspecialchars($column['title']); ?></h3>
+                    <ul class="kanban-column-ul" id="<?php echo htmlspecialchars($column['id']); ?>-column" data-column="<?php echo htmlspecialchars($column['id']); ?>">
+                    </ul>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <!-- Button to add user -->
+        <div class="text-end my-3">
+            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+        </div>
+    </div>
+
+    <!-- Modal for Adding/Editing Stories -->
+    <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="storyForm">
+                        <input type="hidden" id="storyFilename">
+                        <div class="mb-3">
+                            <label for="storyTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="storyTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="storyText" class="form-label">Text</label>
+                            <textarea class="form-control" id="storyText" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="storyOwner" class="form-label">Owner</label>
+                            <input type="text" class="form-control" id="storyOwner" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Background Color</label>
+                            <div id="colorPalette" class="d-flex flex-wrap">
+                                <!-- Color buttons will be inserted here dynamically -->
+                            </div>
+                        </div>
+                        <input type="hidden" id="storyBackgroundColor">
+                        <input type="hidden" id="storyTextColor">
+                        <button type="submit" class="btn btn-primary">Save Story</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding User -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="userPassword" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="generateUser">Generate</button>
+                    </form>
+                    <div class="mt-3">
+                        <pre id="userJsonOutput"></pre>
+                        <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- jQuery and Bootstrap Bundle (includes Popper) -->
+<script src="js/jquery-3.7.0.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/moment.min.js"></script>
+<script src="js/sortable.min.js"></script>
+<!-- Your custom scripts -->
+<script src="js/custom.js"></script>
+<!-- If you have custom JS -->
+</body>
+</html>
+```
+
+### Update `custom.js`
+Ensure your `custom.js` script still works correctly by referring to the dynamically created columns.
+
+```javascript
+$(document).ready(function () {
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            scroll: false,
+            onStart: function () {
+                isDragging = true;
+                console.log('Dragging started');
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                console.log('Dragging ended');
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+
+    // Attach mousemove event to track mouse position
+    document.addEventListener('drag', function (event) {
+        if (lastMouseY === event.clientY) return;
+        lastMouseY = event.clientY;
+        autoScroll();
+    });
+});
+```
+
+With these changes, the Kanban columns are now dynamically generated based on the settings defined in `settings.php`, and users can change the default columns and titles easily by modifying the `settings.php` file.
+------------------------------------------------------------
+I added a check in load_stories.php so if a column doesnt exist add the story to the first column
+------------------------------------------------------------
+allow user to define where to read/write stories from in settings part of the code.
+
+I wrote this myself and I guess the time using chatgpt would have been a few minutes faster. I'm sorry for the delay.
+------------------------------------------------------------
+use existing users for Owner dropdown instead of Edit
+------------------------------------------------------------
+To use existing users for the "Owner" dropdown instead of allowing manual entry, you'll need to modify the HTML form for adding/editing stories and update the JavaScript accordingly. Here are the steps to achieve this:
+
+1. **Update the HTML form**: Replace the text input for the story owner with a dropdown select that is dynamically populated with existing users.
+
+2. **Modify the JavaScript**: Ensure the owner dropdown is populated with users from the `$users` array.
+
+Here's how you can update your code:
+
+### Update the HTML Form
+
+Replace the text input for the story owner with a `select` dropdown in the modal form for adding/editing stories:
+
+```html
+<!-- Modal for Adding/Editing Stories -->
+<div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="storyForm">
+                    <input type="hidden" id="storyFilename">
+                    <div class="mb-3">
+                        <label for="storyTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="storyTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyText" class="form-label">Text</label>
+                        <textarea class="form-control" id="storyText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyOwner" class="form-label">Owner</label>
+                        <select class="form-control" id="storyOwner" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Background Color</label>
+                        <div id="colorPalette" class="d-flex flex-wrap">
+                            <!-- Color buttons will be inserted here dynamically -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="storyBackgroundColor">
+                    <input type="hidden" id="storyTextColor">
+                    <button type="submit" class="btn btn-primary">Save Story</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Modify the JavaScript
+
+Add a script to populate the owner dropdown with existing users:
+
+```javascript
+$(document).ready(function () {
+    // Populate the owner dropdown with existing users
+    const users = <?php echo json_encode(array_column($users, 'username')); ?>;
+    const storyOwnerSelect = $('#storyOwner');
+    users.forEach(user => {
+        storyOwnerSelect.append(new Option(user, user));
+    });
+
+    // Create color buttons
+    const colorPalette = $('#colorPalette');
+    colorOptions.forEach(option => {
+        const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
+        button.on('click', function () {
+            $('#storyBackgroundColor').val(option.background);
+            $('#storyTextColor').val(option.text);
+            $('#colorPalette button').removeClass('active');
+            $(this).addClass('active');
+        });
+        colorPalette.append(button);
+    });
+
+    // Set default color
+    $('#colorPalette button').first().click();
+    loadStories();
+
+    $('#storyForm').on('submit', function (e) {
+        e.preventDefault();
+        saveStory();
+    });
+
+    // Initialize Sortable for each kanban column
+    $('.kanban-column-ul').each(function () {
+        new Sortable(this, {
+            group: 'kanban', // set the same group for all columns
+            animation: 150,
+            scroll: false,
+            onStart: function () {
+                isDragging = true;
+                console.log('Dragging started');
+            },
+            onEnd: function (evt) {
+                isDragging = false;
+                console.log('Dragging ended');
+                const item = evt.item;
+                const newColumn = $(item).closest('.kanban-column-ul').data('column');
+                const filename = $(item).data('filename');
+                const newOrder = $(item).index(); // Get the new index/order
+                // Update the order of all items in the column
+                $(item).closest('.kanban-column-ul').children().each(function (index) {
+                    const filename = $(this).data('filename');
+                    updateStoryColumn(filename, newColumn, index);
+                });
+            }
+        });
+    });
+
+    // Add User Modal
+    $('#generateUser').on('click', function () {
+        const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
+        const userPassword = $('#userPassword').val();
+        if (userName && userPassword) {
+            $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+                $('#userJsonOutput').text(response);
+            });
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyUserJson').on('click', function () {
+        const textToCopy = $('#userJsonOutput').text();
+        navigator.clipboard.writeText(textToCopy).then(function () {
+            alert('Copied to clipboard!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    });
+
+    // Attach mousemove event to track mouse position
+    document.addEventListener('drag', function (event) {
+        if (lastMouseY === event.clientY) return;
+        lastMouseY = event.clientY;
+        autoScroll();
+    });
+});
+```
+
+### Ensure CSRF token and other dependencies
+
+Make sure that the csrf token and other required dependencies are properly set in your script and HTML.
+
+This way, the owner dropdown will be populated with the list of existing users, making it easier to select an owner when adding or editing a story.
+------------------------------------------------------------

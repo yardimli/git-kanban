@@ -1,11 +1,11 @@
 {
-    "column": "in-progress",
+    "column": "finished",
     "title": "Make Owner dropdown",
     "text": "use existing users for Owner dropdown instead of Edit",
     "owner": "Ekim",
     "backgroundColor": "#F28B82",
     "textColor": "#000000",
     "created": "2024-05-14 16:42:01",
-    "lastUpdated": "2024-05-17 08:14:26",
-    "order": "1"
+    "lastUpdated": "2024-05-19 06:52:25",
+    "order": "0"
 }

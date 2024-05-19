@@ -1,11 +1,11 @@
 {
-    "column": "to-do",
+    "column": "finished",
     "title": "Editable Default Colors",
     "text": "Move the default card colors to the settings file.",
     "owner": "Ekim",
     "backgroundColor": "#FFF475",
     "textColor": "#000000",
     "created": "2024-05-16 10:04:09",
-    "lastUpdated": "2024-05-17 08:05:48",
-    "order": "2"
+    "lastUpdated": "2024-05-19 06:29:31",
+    "order": "3"
 }

@@ -1,4 +1,5 @@
 <?php
+	include_once 'settings.php';
 
 	function create_slug($string) {
 		$slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
@@ -19,7 +20,7 @@
 		if (empty($filename)) {
 			$filename = create_slug($title) . '_' . time() . '.json';
 		} else {
-			$filepath = __DIR__ . '/cards/' . $filename;
+			$filepath = $cardsDir . '/' . $filename;
 			if (file_exists($filepath)) {
 				$existingStory = json_decode(file_get_contents($filepath), true);
 				$created = $existingStory['created'];
@@ -39,7 +40,7 @@
 			'lastUpdated' => $lastUpdated,
 		];
 
-		file_put_contents(__DIR__ . '/cards/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
+		file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
 		$story['filename'] = $filename;
 		echo json_encode($story);
 	}

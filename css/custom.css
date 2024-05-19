@@ -3,18 +3,20 @@
     justify-content: space-between;
     width: 100%;
 }
+
 .kanban-column {
     width: 23%;
     background: #f4f4f4;
     padding: 15px;
     border-radius: 5px;
 }
+
 .kanban-card {
     background: #fff;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
 .kanban-column-ul {
@@ -23,5 +25,19 @@
     min-height: 100%;
 }
 
+.kanban-card {
+    position: relative;
+}
 
+.kanban-card .move-to-top-btn {
+    display: none;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+}
+
+.kanban-card:hover .move-to-top-btn {
+    display: block;
+}
 

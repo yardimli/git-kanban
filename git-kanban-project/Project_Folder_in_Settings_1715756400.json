@@ -1,11 +1,11 @@
 {
-    "column": "to-do",
+    "column": "finished",
     "title": "Project Folder in Settings",
     "text": "allow user to define where to read\/write stories from in settings part of the code.",
     "owner": "Ekim",
     "backgroundColor": "",
     "textColor": "",
     "created": "2024-05-15 08:00:00",
-    "lastUpdated": "2024-05-17 08:05:48",
-    "order": "3"
+    "lastUpdated": "2024-05-19 06:41:12",
+    "order": "1"
 }

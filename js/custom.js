@@ -1,31 +1,3 @@
-// Define color options
-const colorOptions = [
-	{background: '#F28B82', text: '#000000'},
-	{background: '#FBBC04', text: '#000000'},
-	{background: '#FFF475', text: '#000000'},
-	{background: '#CCFF90', text: '#000000'},
-	{background: '#A7FFEB', text: '#000000'},
-	{background: '#CBF0F8', text: '#000000'},
-	{background: '#AECBFA', text: '#000000'},
-	{background: '#D7AEFB', text: '#000000'},
-	{background: '#FDCFE8', text: '#000000'},
-	{background: '#E6C9A8', text: '#000000'},
-];
-
-// Create color buttons
-const colorPalette = $('#colorPalette');
-colorOptions.forEach(option => {
-	const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
-	button.on('click', function () {
-		$('#storyBackgroundColor').val(option.background);
-		$('#storyTextColor').val(option.text);
-		$('#colorPalette button').removeClass('active');
-		$(this).addClass('active');
-	});
-	colorPalette.append(button);
-});
-//set default color
-$('#colorPalette button').first().click();
 
 function loadStories() {
 	$.get('load_stories.php', function (data) {
@@ -62,6 +34,7 @@ function createCard(story) {
 	const createdTime = formatRelativeTime(story.created);
 	const updatedTime = formatRelativeTime(story.lastUpdated);
 	return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
+				<button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
         <h5>${story.title}</h5>
         <p>${story.text}</p>
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
@@ -94,7 +67,7 @@ function saveStory() {
 
 
 function editStory(filename) {
-	fetch(`cards/${filename}`)
+	fetch(`${cardsDirName}/${filename}`)
 		.then(response => response.json())
 		.then(story => {
 			$('#storyFilename').val(filename);
@@ -115,7 +88,69 @@ function updateStoryColumn(filename, newColumn, newOrder) {
 	});
 }
 
+
+function autoScroll() {
+	if (!isDragging) return;
+	
+	clearTimeout(scrollTimeout);
+	
+	const scrollSensitivity = 60; // Distance from the edge of the viewport to start scrolling
+	const scrollSpeed = 200; // Speed at which the page scrolls
+	const viewportHeight = window.innerHeight;
+	if (lastMouseY < scrollSensitivity) {
+		// Scroll up
+		window.scrollBy(0, -scrollSpeed);
+		scrollTimeout = setTimeout(() => { autoScroll(); }, 100);
+	} else if (lastMouseY > viewportHeight - scrollSensitivity) {
+		// Scroll down
+		window.scrollBy(0, scrollSpeed);
+		scrollTimeout = setTimeout(() => { autoScroll(); }, 100);
+	}
+}
+
+function moveToTop(event, filename) {
+	event.stopPropagation(); // Prevent triggering the editStory function
+	
+	const card = $(`.kanban-card[data-filename="${filename}"]`).closest('li');
+	const column = card.closest('.kanban-column-ul');
+	
+	// Move card to the top of the column
+	card.prependTo(column);
+	
+	// Update the order of all items in the column
+	column.children().each(function (index) {
+		const filename = $(this).data('filename');
+		updateStoryColumn(filename, column.data('column'), index);
+	});
+}
+
+let isDragging = false;
+let lastMouseY = 0;
+let scrollTimeout = null;
+
+
 $(document).ready(function () {
+	// Populate the owner dropdown with existing users
+	const storyOwnerSelect = $('#storyOwner');
+	users.forEach(user => {
+		storyOwnerSelect.append(new Option(user, user));
+	});
+	
+// Create color buttons
+	const colorPalette = $('#colorPalette');
+	colorOptions.forEach(option => {
+		const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
+		button.on('click', function () {
+			$('#storyBackgroundColor').val(option.background);
+			$('#storyTextColor').val(option.text);
+			$('#colorPalette button').removeClass('active');
+			$(this).addClass('active');
+		});
+		colorPalette.append(button);
+	});
+//set default color
+	$('#colorPalette button').first().click();
+
 	loadStories();
 	
 	$('#storyForm').on('submit', function (e) {
@@ -128,7 +163,15 @@ $(document).ready(function () {
 		new Sortable(this, {
 			group: 'kanban', // set the same group for all columns
 			animation: 150,
+			scroll: false,
+			onStart: function () {
+				isDragging = true;
+				console.log('Dragging started');
+			},
 			onEnd: function (evt) {
+				isDragging = false;
+				console.log('Dragging ended');
+				
 				const item = evt.item;
 				const newColumn = $(item).closest('.kanban-column-ul').data('column');
 				const filename = $(item).data('filename');
@@ -163,6 +206,14 @@ $(document).ready(function () {
 		}, function (err) {
 			console.error('Could not copy text: ', err);
 		});
+	});
+	
+	// Attach mousemove event to track mouse position
+	document.addEventListener('drag', function (event) {
+		if (lastMouseY === event.clientY) return;
+		lastMouseY = event.clientY;
+		
+		autoScroll();
 	});
 	
 	

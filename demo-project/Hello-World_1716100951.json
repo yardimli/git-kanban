@@ -1,0 +1,11 @@
+{
+    "column": "to-do",
+    "order": 0,
+    "title": "Hello World",
+    "text": "test story for demo board",
+    "owner": "Ekim",
+    "backgroundColor": "#FBBC04",
+    "textColor": "#000000",
+    "created": "2024-05-19 06:42:31",
+    "lastUpdated": "2024-05-19 06:42:31"
+}

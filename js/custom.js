@@ -1,4 +1,3 @@
-
 function loadStories() {
 	$.get('load_stories.php', function (data) {
 		const stories = JSON.parse(data);
@@ -34,10 +33,16 @@ function createCard(story) {
 	const createdTime = formatRelativeTime(story.created);
 	const updatedTime = formatRelativeTime(story.lastUpdated);
 	const numComments = story.comments ? story.comments.length : 0;
-
+	const numFiles = story.files ? story.files.length : 0;
+	
 	let numCommentsText = '';
 	if (numComments > 0) {
 		numCommentsText = numComments === 1 ? '1 Comment <br>' : `${numComments} Comments <br>`;
+	}
+	
+	let numFilesText = '';
+	if (numFiles > 0) {
+		numFilesText = numFiles === 1 ? '1 File <br>' : `${numFiles} Files <br>`;
 	}
 	
 	let truncatedText;
@@ -62,7 +67,7 @@ function createCard(story) {
 				<button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
         <h5>${story.title}</h5>
         <p>${truncatedText}</p>
-        <p><strong>Owner:</strong> ${story.owner} <br>${numCommentsText}<strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
+        <p><strong>Owner:</strong> ${story.owner} <br>${numCommentsText}${numFilesText}<strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div></li>`;
 }
 
@@ -103,7 +108,7 @@ function editComment(event, commentId, storyFilename) {
 function deleteComment(event, commentId, storyFilename) {
 	event.stopPropagation();
 	if (confirm('Are you sure you want to delete this comment?')) {
-		$.post('delete_comment.php', { id: commentId, storyFilename: storyFilename }, function (response) {
+		$.post('delete_comment.php', {id: commentId, storyFilename: storyFilename}, function (response) {
 			if (response.success) {
 				$(`.comment[data-id="${commentId}"]`).remove();
 			}
@@ -133,28 +138,50 @@ function saveComment() {
 }
 
 function saveStory() {
-	const formData = {
-		filename: $('#storyFilename').val(),
-		title: $('#storyTitle').val(),
-		text: $('#storyText').val(),
-		owner: $('#storyOwner').val(),
-		backgroundColor: $('#storyBackgroundColor').val(),
-		textColor: $('#storyTextColor').val(),
-	};
-	$.post('save_story.php', formData, function (response) {
-		$('#storyModal').modal('hide');
-		$('#storyForm')[0].reset();
-		const story = JSON.parse(response);
-		const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
-		const existingCard = $(cardSelector);
-		
-		if (existingCard.length) {
-			existingCard.off('click'); // Unbind the click event
-			existingCard.replaceWith(createCard(story));
-		} else {
-			$(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story));
+	const formData = new FormData(document.getElementById('storyForm'));
+	formData.append('filename', $('#storyFilename').val());
+	formData.append('title', $('#storyTitle').val());
+	formData.append('text', $('#storyText').val());
+	formData.append('owner', $('#storyOwner').val());
+	formData.append('backgroundColor', $('#storyBackgroundColor').val());
+	formData.append('textColor', $('#storyTextColor').val());
+	
+	let files = $('#storyFiles')[0].files;
+	for (let i = 0; i < files.length; i++) {
+		formData.append('files[]', files[i]);
+	}
+	
+	$.ajax({
+		url: 'save_story.php',
+		type: 'POST',
+		data: formData,
+		processData: false,
+		contentType: false,
+		success: function (response) {
+			$('#save_result').html('<div class="alert alert-success">Story saved successfully!</div>');
+			const story = JSON.parse(response);
+			const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
+			const existingCard = $(cardSelector);
+			if (existingCard.length) {
+				existingCard.off('click'); // Unbind the click event
+				existingCard.replaceWith(createCard(story));
+			} else {
+				$(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story));
+			}
+			updateFilesList(story);
 		}
 	});
+}
+
+function deleteFile(event, filename, storyFilename) {
+	event.stopPropagation();
+	if (confirm('Are you sure you want to delete this file?')) {
+		$.post('delete_file.php', {filename: filename, storyFilename: storyFilename}, function (response) {
+			if (response.success) {
+				$(`.file[data-filename="${filename}"]`).remove();
+			}
+		}, 'json');
+	}
 }
 
 
@@ -162,6 +189,7 @@ function editStory(filename) {
 	fetch(`${cardsDirName}/${filename}`)
 		.then(response => response.json())
 		.then(story => {
+			$('#save_result').html('');
 			$('#storyFilename').val(filename);
 			$('#storyTitle').val(story.title);
 			$('#storyText').val(story.text);
@@ -177,6 +205,7 @@ function editStory(filename) {
 					commentsList.append(createCommentHtml(comment));
 				});
 			}
+			updateFilesList(story, filename);
 			
 			$('#storyModal').modal('show');
 		})
@@ -184,10 +213,38 @@ function editStory(filename) {
 }
 
 function updateStoryColumn(filename, newColumn, newOrder) {
-	$.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) {
+	$.post('update_story_column.php', {filename: filename, column: newColumn, order: newOrder}, function (response) {
 		const story = JSON.parse(response);
 		console.log(story);
 	});
+}
+
+function createFileHtml(file) {
+	const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.filename);
+	const deleteButton = file.owner === current_user ? `<button class="btn btn-sm btn-danger" onclick="deleteFile(event, '${file.filename}', '${file.storyFilename}')">Delete</button>` : '';
+	const fileLink = `${cardsDirName}/uploads/${file.filename}`;
+	
+	let fileHtml = `<div class="file mb-2 col-4" style="border: 1px solid #ccc; padding: 5px;" data-filename="${file.filename}">`;
+	
+	if (isImage) {
+		fileHtml += `<a href="${fileLink}" target="_blank"><img src="${fileLink}" alt="${file.filename}" style="max-width: 100px; max-height: 100px; margin-right: 10px;"></a>`;
+	}
+	
+	fileHtml += `<a href="${fileLink}" target="_blank">${file.filename}</a> ${deleteButton}</div>`;
+	
+	return fileHtml;
+}
+
+function updateFilesList(story, storyFilename) {
+	const filesList = $('#filesList');
+	filesList.empty(); // Clear existing files
+	
+	if (story.files) {
+		story.files.forEach(file => {
+			file.storyFilename = storyFilename;
+			filesList.append(createFileHtml(file));
+		});
+	}
 }
 
 
@@ -202,11 +259,15 @@ function autoScroll() {
 	if (lastMouseY < scrollSensitivity) {
 		// Scroll up
 		window.scrollBy(0, -scrollSpeed);
-		scrollTimeout = setTimeout(() => { autoScroll(); }, 100);
+		scrollTimeout = setTimeout(() => {
+			autoScroll();
+		}, 100);
 	} else if (lastMouseY > viewportHeight - scrollSensitivity) {
 		// Scroll down
 		window.scrollBy(0, scrollSpeed);
-		scrollTimeout = setTimeout(() => { autoScroll(); }, 100);
+		scrollTimeout = setTimeout(() => {
+			autoScroll();
+		}, 100);
 	}
 }
 
@@ -237,7 +298,7 @@ $(document).ready(function () {
 	users.forEach(user => {
 		storyOwnerSelect.append(new Option(user, user));
 	});
-	
+
 // Create color buttons
 	const colorPalette = $('#colorPalette');
 	colorOptions.forEach(option => {
@@ -252,7 +313,7 @@ $(document).ready(function () {
 	});
 //set default color
 	$('#colorPalette button').first().click();
-
+	
 	loadStories();
 	
 	$('#storyForm').on('submit', function (e) {
@@ -263,6 +324,14 @@ $(document).ready(function () {
 	$('#commentForm').on('submit', function (e) {
 		e.preventDefault();
 		saveComment();
+	});
+	
+	$('#add-story-btn').on('click', function () {
+		$('#save_result').html('');
+		$('#storyForm')[0].reset(); // Reset the form fields
+		$('#commentsList').empty(); // Clear the comments list
+		$('#colorPalette button').removeClass('active').first().click(); // Reset the color selection to default
+		$('#storyModal').modal('show');
 	});
 	
 	// Initialize Sortable for each kanban column
@@ -299,7 +368,7 @@ $(document).ready(function () {
 		const userPassword = $('#userPassword').val();
 		
 		if (userName && userPassword) {
-			$.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
+			$.post('generate_user.php', {username: userName, password: userPassword}, function (response) {
 				$('#userJsonOutput').text(response);
 			});
 		}

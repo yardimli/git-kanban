@@ -7,7 +7,7 @@
 		$files = scandir($cardsDir);
 
 		foreach ($files as $file) {
-			if ($file !== '.' && $file !== '..') {
+			if ($file !== '.' && $file !== '..' && is_file($cardsDir . '/' . $file)) {
 				$filePath = $cardsDir . '/' . $file;
 				$story = json_decode(file_get_contents($filePath), true);
 

@@ -26,6 +26,7 @@
 				$created = $existingStory['created'];
 				$column = $existingStory['column'];
 				$comments = $existingStory['comments'] ?? [];
+				$files = $existingStory['files'] ?? [];
 			}
 		}
 
@@ -40,9 +41,24 @@
 			'created' => $created,
 			'lastUpdated' => $lastUpdated,
 			'comments' => $comments ?? [],
+			'files' => $files ?? []
 		];
 
+		if (!empty($_FILES['files']['name'][0])) {
+			foreach ($_FILES['files']['name'] as $key => $file_name) {
+				$file_tmp = $_FILES['files']['tmp_name'][$key];
+				$file_dest = $cardsDir . '/uploads/' . $file_name;
+				if (move_uploaded_file($file_tmp, $file_dest)) {
+					$story['files'][] = [
+						'filename' => $file_name,
+						'owner' => $_SESSION['user']
+					];
+				}
+			}
+		}
+
 		file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
+
 		$story['filename'] = $filename;
 		echo json_encode($story);
 	}

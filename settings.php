@@ -2,13 +2,24 @@
 	session_start();
 
 	if (empty($_SESSION['user'])) {
-		header('Location: login.php');
-		exit();
+		//dont redirect to login.php if the request url is alread login.php
+		if (basename($_SERVER['PHP_SELF']) !== 'login.php') {
+			header('Location: login.php');
+			exit();
+		}
 	}
 
 	$cardsDirName = 'git-kanban-project';
 
 	$cardsDir = __DIR__ . '/' . $cardsDirName;
+
+	if (!file_exists($cardsDir)) {
+		mkdir($cardsDir, 0777, true);
+	}
+
+	if (!file_exists($cardsDir. '/uploads')) {
+		mkdir($cardsDir. '/uploads', 0777, true);
+	}
 
 	//json string for users, Admin password is 123456
 	$users =

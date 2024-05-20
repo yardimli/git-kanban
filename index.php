@@ -48,7 +48,7 @@
 			</div>
 			<div class="my-3 d-inline-block float-end">
 				<a href="logout.php" class="btn btn-danger">Log Out</a>
-				<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button>
+				<button class="btn btn-primary" id="add-story-btn">Add Story</button>
 			</div>
 		</div>
 
@@ -78,7 +78,7 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
-					<form id="storyForm">
+					<form id="storyForm" enctype="multipart/form-data">
 						<input type="hidden" id="storyFilename">
 						<div class="mb-3">
 							<label for="storyTitle" class="form-label">Title</label>
@@ -102,6 +102,11 @@
 						</div>
 						<input type="hidden" id="storyBackgroundColor">
 						<input type="hidden" id="storyTextColor">
+						<div class="mb-3">
+							<label for="storyFiles" class="form-label">Upload Files</label>
+							<input type="file" class="form-control" id="storyFiles" name="storyFiles[]" multiple>
+						</div>
+						<div id="save_result"></div>
 						<button type="submit" class="btn btn-primary">Save Story</button>
 					</form>
 					<hr>
@@ -109,6 +114,11 @@
 						<h5>Comments</h5>
 						<div id="commentsList"></div>
 						<button class="btn btn-secondary mt-2" onclick="showCommentModal(event, $('#storyFilename').val())">Add Comment</button>
+					</div>
+					<hr>
+					<div class="files-section">
+						<h5>Files</h5>
+						<div id="filesList" class="row"></div>
 					</div>
 				</div>
 			</div>

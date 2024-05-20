@@ -1,0 +1,19 @@
+{
+    "column": "finished",
+    "order": "2",
+    "title": "Comment on stories",
+    "text": "Allow a logged-in user to comment on a story. Show comments with user and timestamp, allow owner of comment to edit\/delete their comments. The comment modal should be different from the story modal and the comment button should be visible on hover similar to the top button.",
+    "owner": "Admin",
+    "backgroundColor": "#FBBC04",
+    "textColor": "#000000",
+    "created": "2024-05-20 04:09:27",
+    "lastUpdated": "2024-05-20 09:07:11",
+    "comments": [
+        {
+            "id": "664b12d98c685",
+            "text": "Hello World Comment",
+            "user": "Ekim",
+            "timestamp": "2024-05-20 09:07:37"
+        }
+    ]
+}

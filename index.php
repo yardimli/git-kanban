@@ -1,12 +1,5 @@
 <?php
-	session_start();
-	include_once 'settings.php';
-
-	if (empty($_SESSION['user'])) {
-		header('Location: login.php');
-		exit();
-	}
-?>
+	include_once 'settings.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +28,8 @@
 		var colorOptions = <?php echo json_encode($colorOptions); ?>;
 		var cardsDirName = "<?php echo $cardsDirName; ?>";
 		const users = <?php echo json_encode(array_column($users, 'username')); ?>;
-	
+		var current_user = "<?php echo $_SESSION['user']; ?>";
+
 	</script>
 </head>
 <body>
@@ -110,6 +104,12 @@
 						<input type="hidden" id="storyTextColor">
 						<button type="submit" class="btn btn-primary">Save Story</button>
 					</form>
+					<hr>
+					<div class="comments-section">
+						<h5>Comments</h5>
+						<div id="commentsList"></div>
+						<button class="btn btn-secondary mt-2" onclick="showCommentModal(event, $('#storyFilename').val())">Add Comment</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -140,6 +140,28 @@
 						<pre id="userJsonOutput"></pre>
 						<button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button>
 					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form id="commentForm">
+						<input type="hidden" id="commentStoryFilename">
+						<input type="hidden" id="commentId">
+						<div class="mb-3">
+							<label for="commentText" class="form-label">Comment</label>
+							<textarea class="form-control" id="commentText" rows="3" required></textarea>
+						</div>
+						<button type="submit" class="btn btn-primary">Save Comment</button>
+					</form>
 				</div>
 			</div>
 		</div>

@@ -1,11 +1,12 @@
 {
     "column": "to-do",
-    "order": "0",
+    "order": 0,
     "title": "Upload media",
     "text": "allow user to upload media or zip file to story.",
     "owner": "Ekim",
     "backgroundColor": "#A7FFEB",
     "textColor": "#000000",
     "created": "2024-05-14 16:52:06",
-    "lastUpdated": "2024-05-19 06:52:21"
+    "lastUpdated": "2024-05-20 08:44:25",
+    "comments": []
 }

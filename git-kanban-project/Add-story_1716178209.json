@@ -1,0 +1,12 @@
+{
+    "column": "finished",
+    "order": 0,
+    "title": "Limit story text in grid",
+    "text": "Make the story text limit to 128 characters or words in the amount on the kanban grid.",
+    "owner": "Ekim",
+    "backgroundColor": "#AECBFA",
+    "textColor": "#000000",
+    "created": "2024-05-20 04:10:09",
+    "lastUpdated": "2024-05-20 09:12:33",
+    "comments": []
+}

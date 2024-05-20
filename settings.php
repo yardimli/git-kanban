@@ -1,4 +1,10 @@
 <?php
+	session_start();
+
+	if (empty($_SESSION['user'])) {
+		header('Location: login.php');
+		exit();
+	}
 
 	$cardsDirName = 'git-kanban-project';
 
@@ -29,8 +35,8 @@
 
 // Define default columns
 	$columns = [
+		['id' => 'parking-lot', 'title' => 'Parking-Lot'],
 		['id' => 'to-do', 'title' => 'To-Do'],
 		['id' => 'in-progress', 'title' => 'In-Progress'],
 		['id' => 'finished', 'title' => 'Finished'],
-		['id' => 'parking-lot', 'title' => 'Parking-Lot'],
 	];

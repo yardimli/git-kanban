@@ -1,0 +1,12 @@
+{
+    "column": "finished",
+    "order": "1",
+    "title": "PHP validate JSON",
+    "text": "add error checking on PHP to report JSON files that are broken in the kanban",
+    "owner": "Admin",
+    "backgroundColor": "#FFF475",
+    "textColor": "#000000",
+    "created": "2024-05-20 09:06:01",
+    "lastUpdated": "2024-05-20 09:07:50",
+    "comments": []
+}

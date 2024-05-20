@@ -33,12 +33,103 @@ function formatRelativeTime(dateTime) {
 function createCard(story) {
 	const createdTime = formatRelativeTime(story.created);
 	const updatedTime = formatRelativeTime(story.lastUpdated);
+	const numComments = story.comments ? story.comments.length : 0;
+
+	let numCommentsText = '';
+	if (numComments > 0) {
+		numCommentsText = numComments === 1 ? '1 Comment <br>' : `${numComments} Comments <br>`;
+	}
+	
+	let truncatedText;
+	if (story.text.length > 128) {
+		const words = story.text.split(' ');
+		let charCount = 0;
+		truncatedText = '';
+		for (const word of words) {
+			if ((charCount + word.length + 1) > 128) {
+				truncatedText += '...';
+				break;
+			}
+			truncatedText += (truncatedText.length ? ' ' : '') + word;
+			charCount += word.length + 1;
+		}
+	} else {
+		truncatedText = story.text;
+	}
+	
+	
 	return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
 				<button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
         <h5>${story.title}</h5>
-        <p>${story.text}</p>
-        <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
+        <p>${truncatedText}</p>
+        <p><strong>Owner:</strong> ${story.owner} <br>${numCommentsText}<strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div></li>`;
+}
+
+function createCommentHtml(comment) {
+	const commentTime = formatRelativeTime(comment.timestamp);
+	const editDeleteButtons = comment.user === current_user ? `
+        <button class="btn btn-sm btn-warning" onclick="editComment(event, '${comment.id}', '${comment.storyFilename}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteComment(event, '${comment.id}', '${comment.storyFilename}')">Delete</button>
+    ` : '';
+	return `
+        <div class="comment mb-2" data-id="${comment.id}">
+            <p>${comment.text}</p>
+            <p><strong>${comment.user}</strong> <span title="${moment.utc(comment.timestamp).local().format('LLLL')}">${commentTime}</span></p>
+            ${editDeleteButtons}
+        </div>`;
+}
+
+function showCommentModal(event, storyFilename) {
+	event.stopPropagation();
+	$('#commentStoryFilename').val(storyFilename);
+	$('#commentId').val('');
+	$('#commentText').val('');
+	$('#commentModalLabel').text('Add Comment');
+	$('#commentModal').modal('show');
+}
+
+function editComment(event, commentId, storyFilename) {
+	event.stopPropagation();
+	const comment = $(`.comment[data-id="${commentId}"]`);
+	const commentText = comment.find('p:first').text();
+	$('#commentStoryFilename').val(storyFilename);
+	$('#commentId').val(commentId);
+	$('#commentText').val(commentText);
+	$('#commentModalLabel').text('Edit Comment');
+	$('#commentModal').modal('show');
+}
+
+function deleteComment(event, commentId, storyFilename) {
+	event.stopPropagation();
+	if (confirm('Are you sure you want to delete this comment?')) {
+		$.post('delete_comment.php', { id: commentId, storyFilename: storyFilename }, function (response) {
+			if (response.success) {
+				$(`.comment[data-id="${commentId}"]`).remove();
+			}
+		}, 'json');
+	}
+}
+
+function saveComment() {
+	const commentData = {
+		storyFilename: $('#commentStoryFilename').val(),
+		id: $('#commentId').val(),
+		text: $('#commentText').val(),
+	};
+	$.post('save_comment.php', commentData, function (response) {
+		$('#commentModal').modal('hide');
+		$('#commentForm')[0].reset();
+		const comment = JSON.parse(response);
+		comment.storyFilename = commentData.storyFilename; // Add storyFilename to the comment
+		const commentsList = $('#commentsList');
+		if (comment.isNew) {
+			commentsList.append(createCommentHtml(comment));
+		} else {
+			const commentElement = commentsList.find(`.comment[data-id="${comment.id}"]`);
+			commentElement.replaceWith(createCommentHtml(comment));
+		}
+	});
 }
 
 function saveStory() {
@@ -58,6 +149,7 @@ function saveStory() {
 		const existingCard = $(cardSelector);
 		
 		if (existingCard.length) {
+			existingCard.off('click'); // Unbind the click event
 			existingCard.replaceWith(createCard(story));
 		} else {
 			$(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story));
@@ -76,6 +168,16 @@ function editStory(filename) {
 			$('#storyOwner').val(story.owner);
 			$('#storyBackgroundColor').val(story.backgroundColor);
 			$('#storyTextColor').val(story.textColor);
+			
+			const commentsList = $('#commentsList');
+			commentsList.empty(); // Clear existing comments
+			if (story.comments) {
+				story.comments.forEach(comment => {
+					comment.storyFilename = filename; // Add storyFilename to each comment
+					commentsList.append(createCommentHtml(comment));
+				});
+			}
+			
 			$('#storyModal').modal('show');
 		})
 		.catch(error => console.error('Error loading story:', error));
@@ -156,6 +258,11 @@ $(document).ready(function () {
 	$('#storyForm').on('submit', function (e) {
 		e.preventDefault();
 		saveStory();
+	});
+	
+	$('#commentForm').on('submit', function (e) {
+		e.preventDefault();
+		saveComment();
 	});
 	
 	// Initialize Sortable for each kanban column

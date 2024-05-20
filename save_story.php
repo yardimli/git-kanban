@@ -25,6 +25,7 @@
 				$existingStory = json_decode(file_get_contents($filepath), true);
 				$created = $existingStory['created'];
 				$column = $existingStory['column'];
+				$comments = $existingStory['comments'] ?? [];
 			}
 		}
 
@@ -38,6 +39,7 @@
 			'textColor' => $textColor,
 			'created' => $created,
 			'lastUpdated' => $lastUpdated,
+			'comments' => $comments ?? [],
 		];
 
 		file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));

@@ -22,14 +22,13 @@
 	<link href="css/bootstrap-icons.min.css" rel="stylesheet">
 	<!-- Custom styles for this template -->
 	<link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS -->
-	<meta name="csrf-token" content="{{ csrf_token() }}">
 
 	<script>
-		var csrf_token = "{{ csrf_token() }}";
 		var colorOptions = <?php echo json_encode($colorOptions); ?>;
 		var cardsDirName = "<?php echo $cardsDirName; ?>";
 		const users = <?php echo json_encode(array_column($users, 'username')); ?>;
-		var current_user = "<?php echo $_SESSION['user']; ?>";
+		var currentUser = "<?php echo $_SESSION['user']; ?>";
+		var defaultColumn = "<?php echo $defaultColumn; ?>";
 
 	</script>
 </head>

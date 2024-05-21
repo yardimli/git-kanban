@@ -73,7 +73,7 @@ function createCard(story) {
 
 function createCommentHtml(comment) {
 	const commentTime = formatRelativeTime(comment.timestamp);
-	const editDeleteButtons = comment.user === current_user ? `
+	const editDeleteButtons = comment.user === currentUser ? `
         <button class="btn btn-sm btn-warning" onclick="editComment(event, '${comment.id}', '${comment.storyFilename}')">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="deleteComment(event, '${comment.id}', '${comment.storyFilename}')">Delete</button>
     ` : '';
@@ -167,14 +167,20 @@ function saveStory() {
 				existingCard.off('click'); // Unbind the click event
 				existingCard.replaceWith(createCard(story));
 			} else {
-				const todoColumn = $('.kanban-column-ul[data-column="todo"]');
-				todoColumn.prepend(createCard(story));
+				console.log('New story:', story);
+				const insertColumn = $('.kanban-column-ul[data-column="'+defaultColumn+'"]');
+				insertColumn.prepend(createCard(story));
 				
-				todoColumn.children().each(function (index) {
+				insertColumn.children().each(function (index) {
 					const filename = $(this).data('filename');
-					updateStoryColumn(filename, 'todo', index);
+					updateStoryColumn(filename, defaultColumn, index);
 				});
+				//scroll to top of document
+				setTimeout(function() {
+					$("#storyModal").modal('hide');
+				},400);
 				
+				$('html, body').animate({scrollTop: 0}, 200);
 			}
 			updateFilesList(story);
 		}
@@ -231,7 +237,7 @@ function updateStoryColumn(filename, newColumn, newOrder) {
 
 function createFileHtml(file) {
 	const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.filename);
-	const deleteButton = file.owner === current_user ? `<button class="btn btn-sm btn-danger" onclick="deleteFile(event, '${file.filename}', '${file.storyFilename}')">Delete</button>` : '';
+	const deleteButton = file.owner === currentUser ? `<button class="btn btn-sm btn-danger" onclick="deleteFile(event, '${file.filename}', '${file.storyFilename}')">Delete</button>` : '';
 	const fileLink = `${cardsDirName}/uploads/${file.filename}`;
 	
 	let fileHtml = `<div class="file mb-2 col-4" style="border: 1px solid #ccc; padding: 5px;" data-filename="${file.filename}">`;

@@ -35,6 +35,8 @@
 		['id' => 'finished', 'title' => 'Finished'],
 	];
 
+	$defaultColumn = 'to-do';
+
 	//------------------DO NOT MODIFY BELOW THIS LINE------------------
 	$cardsDir = __DIR__ . '/' . $cardsDirName;
 

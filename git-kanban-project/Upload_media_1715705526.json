@@ -1,13 +1,13 @@
 {
     "column": "finished",
-    "order": "0",
-    "title": "Upload media",
-    "text": "allow user to upload media or zip file to story. Show the files in the modal under the comments. Allow owners to delete the files they uploaded. Store reference to the files in the story.json",
-    "owner": "Ekim",
-    "backgroundColor": "#A7FFEB",
+    "order": "2",
+    "title": "Light\/Dark Mode",
+    "text": "add a button to switch between light and dark mode, also save the settings to localstorage.",
+    "owner": "Admin",
+    "backgroundColor": "#D7AEFB",
     "textColor": "#000000",
     "created": "2024-05-14 16:52:06",
-    "lastUpdated": "2024-05-20 10:08:20",
+    "lastUpdated": "2024-05-21 09:55:15",
     "comments": [],
     "files": [
         {

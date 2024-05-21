@@ -5627,3 +5627,135 @@ Here's how the full `index.php` with the toggle button would look:
 
 ```
 Now you have a fully functional dark/light mode toggle in your Kanban board application.
+------------------------------------------------------------
+Add new stories to the top of To Do column.
+------------------------------------------------------------
+To ensure that new stories are added to the top of the "To Do" column, you need to modify the `saveStory` function in your `custom.js` file to prepend the new story to the "To Do" column instead of appending it. Additionally, you'll need to ensure that the order of the stories in the "To Do" column is updated correctly.
+
+Here's how you can do it:
+
+1. **Update `saveStory` function**:
+- Instead of appending the new story to the column, you'll prepend it.
+- After prepending the story, update the order of all items in the column.
+
+2. **Ensure the backend handles the new order correctly**:
+- Update the backend to handle the new order of stories when a new story is added.
+
+Here's the updated `saveStory` function:
+
+```javascript
+
+function saveStory() {
+ const formData = new FormData(document.getElementById('storyForm'));
+ formData.append('filename', $('#storyFilename').val());
+ formData.append('title', $('#storyTitle').val());
+ formData.append('text', $('#storyText').val());
+ formData.append('owner', $('#storyOwner').val());
+ formData.append('backgroundColor', $('#storyBackgroundColor').val());
+ formData.append('textColor', $('#storyTextColor').val());
+ let files = $('#storyFiles')[0].files;
+ for (let i = 0; i < files.length; i++) {
+     formData.append('files[]', files[i]);
+ }
+ $.ajax({
+     url: 'save_story.php',
+     type: 'POST',
+     data: formData,
+     processData: false,
+     contentType: false,
+     success: function (response) {
+         $('#save_result').html('<div class="alert alert-success">Story saved successfully!</div>');
+         const story = JSON.parse(response);
+         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
+         const existingCard = $(cardSelector);
+         if (existingCard.length) {
+             existingCard.off('click'); // Unbind the click event
+             existingCard.replaceWith(createCard(story));
+         } else {
+             // Prepend new story to the top of the To Do column (assuming "To Do" column has ID 'todo-column')
+             const todoColumn = $('.kanban-column-ul[data-column="todo"]');
+             todoColumn.prepend(createCard(story));
+
+             // Update the order of all items in the "To Do" column
+             todoColumn.children().each(function (index) {
+                 const filename = $(this).data('filename');
+                 updateStoryColumn(filename, 'todo', index);
+             });
+         }
+         updateFilesList(story);
+     }
+ });
+}
+```
+
+3. **Ensure the newly added story is placed in the correct column with the correct order**:
+
+```php
+
+// In save_story.php, make sure you handle the order correctly
+// Example:
+
+if ($isNewStory) {
+ // If it's a new story, set its column to 'todo' and order to 0 (top of the column)
+ $newStory['column'] = 'todo';
+ $newStory['order'] = 0;
+
+ // Update the order of existing stories in the 'todo' column
+ foreach ($existingStories as &$story) {
+     if ($story['column'] === 'todo') {
+         $story['order']++;
+     }
+ }
+ unset($story); // Break the reference with the last element
+}
+```
+
+4. **Reload the stories to reflect the changes**:
+- After saving the story and updating the order, you may want to reload the stories to ensure the UI reflects the latest state. This can be done by calling `loadStories()` after updating the order.
+
+```javascript
+function saveStory() {
+ const formData = new FormData(document.getElementById('storyForm'));
+ formData.append('filename', $('#storyFilename').val());
+ formData.append('title', $('#storyTitle').val());
+ formData.append('text', $('#storyText').val());
+ formData.append('owner', $('#storyOwner').val());
+ formData.append('backgroundColor', $('#storyBackgroundColor').val());
+ formData.append('textColor', $('#storyTextColor').val());
+ let files = $('#storyFiles')[0].files;
+ for (let i = 0; i < files.length; i++) {
+     formData.append('files[]', files[i]);
+ }
+ $.ajax({
+     url: 'save_story.php',
+     type: 'POST',
+     data: formData,
+     processData: false,
+     contentType: false,
+     success: function (response) {
+         $('#save_result').html('<div class="alert alert-success">Story saved successfully!</div>');
+         const story = JSON.parse(response);
+         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
+         const existingCard = $(cardSelector);
+         if (existingCard.length) {
+             existingCard.off('click'); // Unbind the click event
+             existingCard.replaceWith(createCard(story));
+         } else {
+             // Prepend new story to the top of the To Do column (assuming "To Do" column has ID 'todo-column')
+             const todoColumn = $('.kanban-column-ul[data-column="todo"]');
+             todoColumn.prepend(createCard(story));
+
+             // Update the order of all items in the "To Do" column
+             todoColumn.children().each(function (index) {
+                 const filename = $(this).data('filename');
+                 updateStoryColumn(filename, 'todo', index);
+             });
+         }
+         updateFilesList(story);
+         loadStories(); // Reload stories to reflect the latest state
+     }
+ });
+}
+```
+
+his approach ensures that new stories are added to the top of the "To Do" column and that the order of all stories within the column is updated correctly.

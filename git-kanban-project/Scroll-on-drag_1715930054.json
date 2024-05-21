@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "13",
+    "order": "14",
     "title": "Scroll on drag",
     "text": "If user drags the card to the top or bottom of the screen auto scroll.",
     "owner": "Ekim",

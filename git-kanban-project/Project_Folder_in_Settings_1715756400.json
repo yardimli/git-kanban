@@ -1,11 +1,13 @@
 {
     "column": "finished",
+    "order": "1",
     "title": "Project Folder in Settings",
     "text": "allow user to define where to read\/write stories from in settings part of the code.",
     "owner": "Ekim",
-    "backgroundColor": "",
-    "textColor": "",
+    "backgroundColor": "#FFFFFF",
+    "textColor": "#000000",
     "created": "2024-05-15 08:00:00",
-    "lastUpdated": "2024-05-19 06:41:12",
-    "order": "5"
+    "lastUpdated": "2024-05-21 10:03:19",
+    "comments": [],
+    "files": []
 }

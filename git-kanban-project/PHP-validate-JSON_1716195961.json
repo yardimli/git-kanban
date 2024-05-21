@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "2",
+    "order": "4",
     "title": "PHP validate JSON",
     "text": "add error checking on PHP to report JSON files that are broken in the kanban",
     "owner": "Admin",

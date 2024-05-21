@@ -4,8 +4,15 @@
     --card-background: #fff;
     --column-background: #f4f4f4;
     --card-box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    --modal-background: #fff;
+    --modal-header-background: #f8f9fa;
+    --modal-text-color: #000;
+    --input-background: #fff;
+    --input-text-color: #000;
+    --input-border-color: #ced4da;
+    --alert-success-background: #d4edda;
+    --alert-success-text: #155724;
 }
-
 
 
 body.dark-mode {
@@ -14,8 +21,15 @@ body.dark-mode {
     --card-background: #1e1e1e;
     --column-background: #333;
     --card-box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+    --modal-background: #2c2c2c;
+    --modal-header-background: #333;
+    --modal-text-color: #fff;
+    --input-background: #333;
+    --input-text-color: #fff;
+    --input-border-color: #444;
+    --alert-success-background: #155724;
+    --alert-success-text: #d4edda;
 }
-
 
 
 body {
@@ -65,3 +79,54 @@ body {
 .kanban-card:hover .move-to-top-btn {
     display: block;
 }
+
+
+/* Modal styles */
+
+.modal-content {
+    background-color: var(--modal-background);
+    color: var(--modal-text-color);
+}
+
+
+.modal-header {
+    background-color: var(--modal-header-background);
+    color: var(--modal-text-color);
+}
+
+
+.modal-body {
+    color: var(--modal-text-color);
+}
+
+
+.modal-footer {
+    background-color: var(--modal-header-background);
+    color: var(--modal-text-color);
+}
+
+
+.btn-close {
+    filter: invert(100%);
+}
+
+
+/* Form element styles */
+
+input, textarea, select {
+    background-color: var(--input-background) !important;
+    color: var(--input-text-color) !important;
+    border-color: var(--input-border-color) !important;
+}
+
+
+input::placeholder, textarea::placeholder {
+    color: var(--input-text-color) !important;
+}
+
+/* Alert styles */
+.alert-success {
+    background-color: var(--alert-success-background);
+    color: var(--alert-success-text);
+}
+

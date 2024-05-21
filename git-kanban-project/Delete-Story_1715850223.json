@@ -1,11 +1,13 @@
 {
     "column": "to-do",
+    "order": 0,
     "title": "Delete Story",
     "text": "in the edit modal, add a delete button with confirmation, delete the file if approved.",
     "owner": "Ekim",
     "backgroundColor": "#FDCFE8",
     "textColor": "#000000",
     "created": "2024-05-16 10:03:43",
-    "lastUpdated": "2024-05-17 08:05:48",
-    "order": "3"
+    "lastUpdated": "2024-05-21 10:11:10",
+    "comments": [],
+    "files": []
 }

@@ -53,7 +53,7 @@
 			</div>
 			<div class="my-3 d-inline-block float-end">
 				<a href="logout.php" class="btn btn-danger">Log Out</a>
-				<button class="btn btn-primary" id="add-story-btn">Add Story</button>
+				<button class="btn btn-primary" id="addStoryBtn">Add Story</button>
 			</div>
 		</div>
 
@@ -75,8 +75,8 @@
 	</div>
 
 	<!-- Modal for Adding/Editing Stories -->
-	<div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
+	<div class="modal modal-lg fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+		<div class="modal-dialog  modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="storyModalLabel">Add Story</h5>
@@ -113,15 +113,16 @@
 						</div>
 						<div id="save_result"></div>
 						<button type="submit" class="btn btn-primary">Save Story</button>
+
+						<button class="btn btn-secondary" id="showCommentModal">Add Comment</button>
 					</form>
-					<hr>
 					<div class="comments-section">
+						<hr>
 						<h5>Comments</h5>
 						<div id="commentsList"></div>
-						<button class="btn btn-secondary mt-2" onclick="showCommentModal(event, $('#storyFilename').val())">Add Comment</button>
 					</div>
-					<hr>
 					<div class="files-section">
+						<hr>
 						<h5>Files</h5>
 						<div id="filesList" class="row"></div>
 					</div>
@@ -160,8 +161,9 @@
 		</div>
 	</div>
 
+	<!-- Modal for Adding Comment -->
 	<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
+		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="commentModalLabel">Add Comment</h5>

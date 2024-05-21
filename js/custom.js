@@ -128,6 +128,7 @@ function saveComment() {
 		const comment = JSON.parse(response);
 		comment.storyFilename = commentData.storyFilename; // Add storyFilename to the comment
 		const commentsList = $('#commentsList');
+		$('.comments-section').show();
 		if (comment.isNew) {
 			commentsList.append(createCommentHtml(comment));
 		} else {
@@ -166,7 +167,14 @@ function saveStory() {
 				existingCard.off('click'); // Unbind the click event
 				existingCard.replaceWith(createCard(story));
 			} else {
-				$(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story));
+				const todoColumn = $('.kanban-column-ul[data-column="todo"]');
+				todoColumn.prepend(createCard(story));
+				
+				todoColumn.children().each(function (index) {
+					const filename = $(this).data('filename');
+					updateStoryColumn(filename, 'todo', index);
+				});
+				
 			}
 			updateFilesList(story);
 		}
@@ -199,8 +207,10 @@ function editStory(filename) {
 			
 			const commentsList = $('#commentsList');
 			commentsList.empty(); // Clear existing comments
+			$('.comments-section').hide();
 			if (story.comments) {
 				story.comments.forEach(comment => {
+					$('.comments-section').show();
 					comment.storyFilename = filename; // Add storyFilename to each comment
 					commentsList.append(createCommentHtml(comment));
 				});
@@ -238,9 +248,11 @@ function createFileHtml(file) {
 function updateFilesList(story, storyFilename) {
 	const filesList = $('#filesList');
 	filesList.empty(); // Clear existing files
+	$(".files-section").hide();
 	
 	if (story.files) {
 		story.files.forEach(file => {
+			$(".files-section").show();
 			file.storyFilename = storyFilename;
 			filesList.append(createFileHtml(file));
 		});
@@ -345,18 +357,32 @@ $(document).ready(function () {
 		saveStory();
 	});
 	
+	$("#showCommentModal").on('click', function (e) {
+		e.preventDefault();
+		showCommentModal(e, $('#storyFilename').val());
+	});
+	
 	$('#commentForm').on('submit', function (e) {
 		e.preventDefault();
 		saveComment();
 	});
 	
-	$('#add-story-btn').on('click', function () {
+	$('#addStoryBtn').on('click', function () {
 		$('#save_result').html('');
 		$('#storyForm')[0].reset(); // Reset the form fields
 		$('#commentsList').empty(); // Clear the comments list
 		$('#colorPalette button').removeClass('active').first().click(); // Reset the color selection to default
 		$('#storyModal').modal('show');
 	});
+	
+	$('#storyModal').on('shown.bs.modal', function () {
+		$('#storyTitle').focus();
+	});
+	
+	$('#commentModal').on('shown.bs.modal', function () {
+		$('#commentText').focus();
+	});
+	
 	
 	// Initialize Sortable for each kanban column
 	$('.kanban-column-ul').each(function () {

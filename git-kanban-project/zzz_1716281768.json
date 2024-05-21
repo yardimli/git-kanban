@@ -1,0 +1,13 @@
+{
+    "column": "finished",
+    "order": "0",
+    "title": "New story location",
+    "text": "Add new stories to the top of To Do column.",
+    "owner": "Admin",
+    "backgroundColor": "#E6C9A8",
+    "textColor": "#000000",
+    "created": "2024-05-21 09:56:08",
+    "lastUpdated": "2024-05-21 10:27:36",
+    "comments": [],
+    "files": []
+}

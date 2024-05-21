@@ -1,25 +1,7 @@
 <?php
 	session_start();
 
-	if (empty($_SESSION['user'])) {
-		//dont redirect to login.php if the request url is alread login.php
-		if (basename($_SERVER['PHP_SELF']) !== 'login.php') {
-			header('Location: login.php');
-			exit();
-		}
-	}
-
 	$cardsDirName = 'git-kanban-project';
-
-	$cardsDir = __DIR__ . '/' . $cardsDirName;
-
-	if (!file_exists($cardsDir)) {
-		mkdir($cardsDir, 0777, true);
-	}
-
-	if (!file_exists($cardsDir. '/uploads')) {
-		mkdir($cardsDir. '/uploads', 0777, true);
-	}
 
 	//json string for users, Admin password is 123456
 	$users =
@@ -28,6 +10,7 @@
 			['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
 		];
 
+	$autoLoginUser = 'Admin'; //leave this empty if you want to allow all users to login
 
 	$colorOptions = [
 		['background' => '#F28B82', 'text' => '#000000'],
@@ -51,3 +34,29 @@
 		['id' => 'in-progress', 'title' => 'In-Progress'],
 		['id' => 'finished', 'title' => 'Finished'],
 	];
+
+	//------------------DO NOT MODIFY BELOW THIS LINE------------------
+	$cardsDir = __DIR__ . '/' . $cardsDirName;
+
+	if (!file_exists($cardsDir)) {
+		mkdir($cardsDir, 0777, true);
+	}
+
+	if (!file_exists($cardsDir. '/uploads')) {
+		mkdir($cardsDir. '/uploads', 0777, true);
+	}
+
+
+	if ($autoLoginUser !== '' && basename($_SERVER['PHP_SELF']) === 'login.php') {
+		$_SESSION['user'] = $autoLoginUser;
+		header('Location: index.php');
+		exit();
+	}
+
+	if (empty($_SESSION['user'])) {
+		//dont redirect to login.php if the request url is alread login.php
+		if (basename($_SERVER['PHP_SELF']) !== 'login.php') {
+			header('Location: login.php');
+			exit();
+		}
+	}

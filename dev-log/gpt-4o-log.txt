@@ -1361,21 +1361,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 By integrating `SortableJS`, you can visually see the card being dragged between columns, providing a smoother user experience. The `onEnd` event of `SortableJS` is used to update the story's column in the backend.
 ------------------------------------------------------------
 <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-5"> <h1 class="text-center">Git Kanban Board</h1> <div class="text-end my-3"> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
-
-
-
 // Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); stories.forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${story.column}"]`).append(card); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return `<li data-filename="${story.filename}"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}"> <h5>${story.title}</h5> <p>${story.text}</p> <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p> </div></li>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), column: 'to-do' }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); } function updateStoryColumn(filename, newColumn) { $.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) { const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const card = $(cardSelector); card.detach(); $(`.kanban-column-ul[data-column="${newColumn}"]`).append(card); }); } $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); // Initialize Sortable for each kanban column $('.kanban-column-ul').each(function () { new Sortable(this, { group: 'kanban', // set the same group for all columns animation: 150, onEnd: function (evt) { const item = evt.item; const newColumn = $(item).closest('.kanban-column-ul').data('column'); const filename = $(item).data('filename'); updateStoryColumn(filename, newColumn); } }); }); });
-
-
-
 at the bottom of the page add a button that says add user. It should show a modal with two inputs user name and password. Once user clicks generate show a json string in the modal. username should be just name without spaces or special characters.
-
-
-
 {"username":"user","password":"hash"}
-
-
-
 it should generate a hash from the password using phps built in functions.
 ------------------------------------------------------------
 Sure! Below is the modified HTML and JavaScript to include a button at the bottom of the page that opens a modal to add a user. The modal will have inputs for the username and password, and upon clicking "Generate," it will show a JSON string with the username and a hashed password.
@@ -1980,21 +1968,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 The above changes add a "Copy" button to the user modal. When you click the "Generate" button, it generates a JSON string with the username and hashed password. When you click the "Copy" button, the JSON string is copied to the clipboard, and an alert is shown to confirm the action.
 ------------------------------------------------------------
 <?php include_once 'settings.php'; ?><!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-5"> <h1 class="text-center">Git Kanban Board</h1> <div class="text-end my-3"> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
-
-
-
 <?php //json string for users, Admin password is 123456 $users = [ ['username' => 'Admin', 'password' => '$2y$10$kMdhKRcawdXC9JhayVRhS.mZ/T5Va7K1wfck7FcM6uff1BGfd1qym'], ['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'], ];
-
-
-
 // Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); stories.forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${story.column}"]`).append(card); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return `<li data-filename="${story.filename}"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}"> <h5>${story.title}</h5> <p>${story.text}</p> <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p> </div></li>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), column: 'to-do' }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); } function updateStoryColumn(filename, newColumn) { $.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) { const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const card = $(cardSelector); card.detach(); $(`.kanban-column-ul[data-column="${newColumn}"]`).append(card); }); } $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); // Initialize Sortable for each kanban column $('.kanban-column-ul').each(function () { new Sortable(this, { group: 'kanban', // set the same group for all columns animation: 150, onEnd: function (evt) { const item = evt.item; const newColumn = $(item).closest('.kanban-column-ul').data('column'); const filename = $(item).data('filename'); updateStoryColumn(filename, newColumn); } }); }); // Add User Modal $('#generateUser').on('click', function () { const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, ''); const userPassword = $('#userPassword').val(); if (userName && userPassword) { $.post('generate_user.php', { username: userName, password: userPassword }, function (response) { $('#userJsonOutput').text(response); }); } }); // Copy to clipboard $('#copyUserJson').on('click', function () { const textToCopy = $('#userJsonOutput').text(); navigator.clipboard.writeText(textToCopy).then(function () { alert('Copied to clipboard!'); }, function (err) { console.error('Could not copy text: ', err); }); }); });
-
-
-
 <?php if ($_SERVER['REQUEST_METHOD'] === 'POST') { $username = preg_replace('/\s+/', '', $_POST['username']); $username = preg_replace('/[^\w\-]/', '', $username); $password = $_POST['password']; $hashedPassword = password_hash($password, PASSWORD_BCRYPT); $response = [ 'username' => $username, 'password' => $hashedPassword ]; echo "['username' => '".$username."', 'password' => '".$hashedPassword."'],"; }
-
-
-
 add a login.php page that will be called if $_SESSION['user'] is empty. Design a simple login form that will check against the users in settings php and redirect back to index after setting the session
 ------------------------------------------------------------
 Certainly! Here's how you can create a `login.php` page that will be used to authenticate users and set a session.
@@ -2117,33 +2093,12 @@ This approach keeps your application secure by ensuring only authorized users ca
 I'll style it with something from codepen and add a logout button myself
 ------------------------------------------------------------
 // Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); //set default color $('#colorPalette button').first().click(); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); stories.forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${story.column}"]`).append(card); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return `<li data-filename="${story.filename}"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}"> <h5>${story.title}</h5> <p>${story.text}</p> <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p> </div></li>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); } function updateStoryColumn(filename, newColumn) { $.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) { const story = JSON.parse(response); console.log(story); }); } $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); // Initialize Sortable for each kanban column $('.kanban-column-ul').each(function () { new Sortable(this, { group: 'kanban', // set the same group for all columns animation: 150, onEnd: function (evt) { const item = evt.item; const newColumn = $(item).closest('.kanban-column-ul').data('column'); const filename = $(item).data('filename'); updateStoryColumn(filename, newColumn); } }); }); // Add User Modal $('#generateUser').on('click', function () { const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, ''); const userPassword = $('#userPassword').val(); if (userName && userPassword) { $.post('generate_user.php', { username: userName, password: userPassword }, function (response) { $('#userJsonOutput').text(response); }); } }); // Copy to clipboard $('#copyUserJson').on('click', function () { const textToCopy = $('#userJsonOutput').text(); navigator.clipboard.writeText(textToCopy).then(function () { alert('Copied to clipboard!'); }, function (err) { console.error('Could not copy text: ', err); }); }); });
-
-
-
 load_stories.php
-
-
-
 <?php $dir = __DIR__ . '/cards'; $stories = []; if (is_dir($dir)) { $files = scandir($dir); foreach ($files as $file) { if ($file !== '.' && $file !== '..') { $filepath = $dir . '/' . $file; $story = json_decode(file_get_contents($filepath), true); $story['filename'] = $file; $stories[] = $story; } } } echo json_encode($stories);
-
-
-
 update_story_column.php
-
-
-
 <?php if ($_SERVER['REQUEST_METHOD'] === 'POST') { $filename = $_POST['filename']; $column = $_POST['column']; $filepath = __DIR__ . '/cards/' . $filename; if (file_exists($filepath)) { $story = json_decode(file_get_contents($filepath), true); $story['column'] = $column; $story['lastUpdated'] = date('Y-m-d H:i:s'); file_put_contents($filepath, json_encode($story, JSON_PRETTY_PRINT)); echo json_encode($story); } }
-
-
-
 index.php
-
-
-
 <?php session_start(); include_once 'settings.php'; if (empty($_SESSION['user'])) { header('Location: login.php'); exit(); } ?> <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- FAVICON AND TOUCH ICONS --> <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon"> <link rel="icon" href="images/favicon.ico" type="image/x-icon"> <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png"> <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png"> <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png"> <link rel="apple-touch-icon" href="images/apple-touch-icon.png"> <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon"> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-2"> <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1> <div> <div class="my-3 d-inline-block"> Hello <?php echo $_SESSION['user']; ?>, </div> <div class="my-3 d-inline-block float-end"> <a href="logout.php" class="btn btn-danger">Log Out</a> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
-
-
-
 I want to be able to save and load the order of the cards in the columns. I want the order information to be saved into the story file
 ------------------------------------------------------------
 To save and load the order of the cards in the columns, you'll need to update your backend and frontend code accordingly. Specifically, you'll need to:
@@ -2301,9 +2256,6 @@ $(document).ready(function () {
 This should ensure that the order of the cards is saved and loaded correctly.
 ------------------------------------------------------------
 function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); // Sort stories by order stories.sort((a, b) => a.order - b.order); stories.forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${story.column}"]`).append(card); }); }); }
-
-
-
 here we need to sort them for each column separately.
 ------------------------------------------------------------
 To sort the stories separately for each column, you'll need to first group the stories by their column and then sort the stories within each group. You can achieve this by using JavaScript's `reduce` function to group the stories and then sorting each group's stories by their order.
@@ -2353,13 +2305,7 @@ function loadStories() {
 This ensures that the stories are grouped by their columns and sorted within each column before being displayed on the Kanban board.
 ------------------------------------------------------------
 <?php session_start(); include_once 'settings.php'; if (empty($_SESSION['user'])) { header('Location: login.php'); exit(); } ?> <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- FAVICON AND TOUCH ICONS --> <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon"> <link rel="icon" href="images/favicon.ico" type="image/x-icon"> <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png"> <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png"> <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png"> <link rel="apple-touch-icon" href="images/apple-touch-icon.png"> <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon"> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-2"> <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1> <div> <div class="my-3 d-inline-block"> Hello <?php echo $_SESSION['user']; ?>, </div> <div class="my-3 d-inline-block float-end"> <a href="logout.php" class="btn btn-danger">Log Out</a> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
-
-
-
 // Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); //set default color $('#colorPalette button').first().click(); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); // Group stories by column const groupedStories = stories.reduce((acc, story) => { if (!acc[story.column]) { acc[story.column] = []; } acc[story.column].push(story); return acc; }, {}); // Iterate through each column Object.keys(groupedStories).forEach(column => { // Sort stories by order within each column groupedStories[column].sort((a, b) => a.order - b.order); // Append sorted stories to the respective column groupedStories[column].forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${column}"]`).append(card); }); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}"> <h5>${story.title}</h5> <p>${story.text}</p> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p> </div></li>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column-ul[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); } function updateStoryColumn(filename, newColumn, newOrder) { $.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) { const story = JSON.parse(response); console.log(story); }); } $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); // Initialize Sortable for each kanban column $('.kanban-column-ul').each(function () { new Sortable(this, { group: 'kanban', // set the same group for all columns animation: 150, onEnd: function (evt) { const item = evt.item; const newColumn = $(item).closest('.kanban-column-ul').data('column'); const filename = $(item).data('filename'); const newOrder = $(item).index(); // Get the new index/order // Update the order of all items in the column $(item).closest('.kanban-column-ul').children().each(function (index) { const filename = $(this).data('filename'); updateStoryColumn(filename, newColumn, index); }); } }); }); // Add User Modal $('#generateUser').on('click', function () { const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, ''); const userPassword = $('#userPassword').val(); if (userName && userPassword) { $.post('generate_user.php', { username: userName, password: userPassword }, function (response) { $('#userJsonOutput').text(response); }); } }); // Copy to clipboard $('#copyUserJson').on('click', function () { const textToCopy = $('#userJsonOutput').text(); navigator.clipboard.writeText(textToCopy).then(function () { alert('Copied to clipboard!'); }, function (err) { console.error('Could not copy text: ', err); }); }); });
-
-
-
 when dragging cards and the mouse is close to the top or bottom of the screen scroll the browser
 ------------------------------------------------------------
 To enable auto-scrolling of the browser window when dragging cards close to the top or bottom of the screen, you can make use of the `autoScroll` option provided by the SortableJS library. This option allows the page to scroll when dragging items near the edges of the viewport.
@@ -4357,17 +4303,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 With these changes, comments will now be displayed within the story modal, allowing users to add, edit, and delete comments directly within the context of the story they belong to.
 ------------------------------------------------------------
 <?php include_once 'settings.php'; if ($_SERVER['REQUEST_METHOD'] === 'POST') { $storyFilename = $_POST['storyFilename']; $commentId = $_POST['id']; $filePath = $cardsDir . '/' . $storyFilename; if (file_exists($filePath)) { $story = json_decode(file_get_contents($filePath), true); if (isset($story['comments'])) { $story['comments'] = array_filter($story['comments'], function ($comment) use ($commentId) { return $comment['id'] !== $commentId; }); file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT)); echo json_encode(['success' => true]); } } }
-
-
-
 this code changes the json to look like
-
-
-
 { "column": "to-do", "order": 0, "title": "Limit story text in grid", "text": "Make the story text limit to 255 characters or words in the amount on the kanban grid.", "owner": "Ekim", "backgroundColor": "#FFF475", "textColor": "#000000", "created": "2024-05-20 04:10:09", "lastUpdated": "2024-05-20 08:41:05", "comments": { "0": { "id": "664b10103828f", "text": "aaa222", "user": "Ekim", "timestamp": "2024-05-20 08:56:03" }, "2": { "id": "664b102db7f06", "text": "3333", "user": "Ekim", "timestamp": "2024-05-20 08:56:13" } } }
-
-
-
 i dont want the comments to become sub arrays
 ------------------------------------------------------------
 The problem in the provided code is that the `array_filter` function preserves the keys of the array, which causes the JSON output to retain those keys as associative array indices instead of re-indexing them numerically.
@@ -5373,3 +5310,320 @@ Ensure that the story form includes a file input:
 ```
 
 By implementing these changes, you should be able to show image thumbnails along with the file names and links when stories have associated image files.
+------------------------------------------------------------
+add a button and setting for dark/light mode.
+------------------------------------------------------------
+To add a dark/light mode toggle to your existing project, you'll need to:
+1. Add a button in your HTML to toggle the mode.
+
+2. Update your CSS to support both dark and light modes.
+
+3. Add JavaScript to handle the mode switching and save the user's preference.
+Here's how you can do it step by step:
+### Step 1: Add a Toggle Button in the HTML
+Add a button in your header or somewhere prominent in your `index.php` to toggle between dark and light modes.
+```html
+<header><!-- Bootstrap Navbar or custom header content here -->Z
+    <div class="container-fluid">
+        <button id="modeToggleBtn" class="btn btn-secondary float-end">Toggle Dark Mode</button>
+    </div>
+</header>
+
+```
+### Step 2: Update Your CSS
+Modify your `custom.css` to include styles for both dark and light modes. You can use CSS variables to make it easier to switch between modes.
+```css
+
+:root {
+--background-color: #fff;
+--text-color: #000;
+--card-background: #fff;
+--column-background: #f4f4f4;
+--card-box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+
+}
+body.dark-mode {
+--background-color: #121212;
+--text-color: #fff;
+--card-background: #1e1e1e;
+--column-background: #333;
+--card-box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+
+}
+body {
+background-color: var(--background-color);
+color: var(--text-color);
+
+}
+.kanban-board {
+display: flex;
+justify-content: space-between;
+width: 100%;
+
+}
+.kanban-column {
+width: 23%;
+background: var(--column-background);
+padding: 15px;
+border-radius: 5px;
+
+}
+.kanban-card {
+background: var(--card-background);
+padding: 10px;
+margin-bottom: 10px;
+border-radius: 5px;
+box-shadow: var(--card-box-shadow);
+
+}
+.kanban-column-ul {
+list-style-type: none;
+padding: 0;
+min-height: 100%;
+
+}
+.kanban-card {
+position: relative;
+
+}
+.kanban-card .move-to-top-btn {
+display: none;
+position: absolute;
+top: 5px;
+right: 5px;
+z-index: 10;
+
+}
+.kanban-card:hover .move-to-top-btn {
+display: block;
+
+}
+
+```
+### Step 3: Add JavaScript to Handle Mode Switching
+Update your `custom.js` to handle the mode switching and save the user's preference in `localStorage`.
+```javascript
+
+$(document).ready(function() {
+// Function to apply the theme
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        $('body').addClass('dark-mode');
+        $('#modeToggleBtn').text('Switch to Light Mode');
+    } else {
+        $('body').removeClass('dark-mode');
+        $('#modeToggleBtn').text('Switch to Dark Mode');
+    }
+}
+    // Get the saved theme from localStorage
+const savedTheme = localStorage.getItem('theme') || 'light';
+applyTheme(savedTheme);
+    // Toggle the theme on button click
+$('#modeToggleBtn').on('click', function() {
+    const currentTheme = $('body').hasClass('dark-mode') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+});
+
+});
+
+```
+This setup will allow users to toggle between dark and light modes, and their preference will be saved in `localStorage` so that it persists across page reloads.
+### Full `index.php` with Toggle Button
+Here's how the full `index.php` with the toggle button would look:
+```php
+
+<?php include_once 'settings.php'; ?>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Git Kanban Board</title>
+<!-- FAVICON AND TOUCH ICONS -->
+<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon">
+<!-- Bootstrap CSS -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="css/custom.css" rel="stylesheet">
+<!-- If you have custom CSS -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script>
+    var csrf_token = "{{ csrf_token() }}";
+    var colorOptions = <?php echo json_encode($colorOptions); ?>;
+    var cardsDirName = "<?php echo $cardsDirName; ?>";
+    const users = <?php echo json_encode(array_column($users, 'username')); ?>;
+    var current_user = "<?php echo $_SESSION['user']; ?>";
+</script>
+
+</head>
+
+<body>
+
+<header>
+<!-- Bootstrap Navbar or custom header content here -->
+<div class="container-fluid">
+    <button id="modeToggleBtn" class="btn btn-secondary float-end">Toggle Dark Mode</button>
+</div>
+
+</header>
+
+<main class="py-4">
+<div class="container mt-2">
+    <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1>
+    <div>
+        <div class="my-3 d-inline-block">
+            Hello <?php echo $_SESSION['user']; ?>,
+        </div>
+        <div class="my-3 d-inline-block float-end">
+            <a href="logout.php" class="btn btn-danger">Log Out</a>
+            <button class="btn btn-primary" id="add-story-btn">Add Story</button>
+        </div>
+    </div>
+    <div class="kanban-board" id="kanbanBoard">
+        <?php foreach ($columns as $column): ?>
+            <div class="kanban-column">
+                <h3><?php echo htmlspecialchars($column['title']); ?></h3>
+                <ul class="kanban-column-ul" id="<?php echo htmlspecialchars($column['id']); ?>-column" data-column="<?php echo htmlspecialchars($column['id']); ?>">
+                </ul>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <!-- Button to add user -->
+    <div class="text-end my-3">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+    </div>
+</div>
+<!-- Modal for Adding/Editing Stories -->
+<div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="storyForm" enctype="multipart/form-data">
+                    <input type="hidden" id="storyFilename">
+                    <div class="mb-3">
+                        <label for="storyTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="storyTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyText" class="form-label">Text</label>
+                        <textarea class="form-control" id="storyText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyOwner" class="form-label">Owner</label>
+                        <select class="form-control" id="storyOwner" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Background Color</label>
+                        <div id="colorPalette" class="d-flex flex-wrap">
+                            <!-- Color buttons will be inserted here dynamically -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="storyBackgroundColor">
+                    <input type="hidden" id="storyTextColor">
+                    <div class="mb-3">
+                        <label for="storyFiles" class="form-label">Upload Files</label>
+                        <input type="file" class="form-control" id="storyFiles" name="storyFiles[]" multiple>
+                    </div>
+                    <div id="save_result"></div>
+                    <button type="submit" class="btn btn-primary">Save Story</button>
+                </form>
+                <hr>
+                <div class="comments-section">
+                    <h5>Comments</h5>
+                    <div id="commentsList"></div>
+                    <button class="btn btn-secondary mt-2" onclick="showCommentModal(event, $('#storyFilename').val())">Add Comment</button>
+                </div>
+                <hr>
+                <div class="files-section">
+                    <h5>Files</h5>
+                    <div id="filesList" class="row"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Adding User -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="userName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="userPassword" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="generateUser">Generate</button>
+                </form>
+                <div class="mt-3">
+                    <pre id="userJsonOutput"></pre>
+                    <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="commentForm">
+                    <input type="hidden" id="commentStoryFilename">
+                    <input type="hidden" id="commentId">
+                    <div class="mb-3">
+                        <label for="commentText" class="form-label">Comment</label>
+                        <textarea class="form-control" id="commentText" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
+
+<!-- jQuery and Bootstrap Bundle (includes Popper) -->
+
+<script src="js/jquery-3.7.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/moment.min.js"></script>
+<script src="js/sortable.min.js"></script>
+
+<!-- Your custom scripts -->
+<script src="js/custom.js"></script>
+</body>
+
+</html>
+
+```
+Now you have a fully functional dark/light mode toggle in your Kanban board application.

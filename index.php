@@ -19,6 +19,7 @@
 
 	<!-- Bootstrap CSS -->
 	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/bootstrap-icons.min.css" rel="stylesheet">
 	<!-- Custom styles for this template -->
 	<link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS -->
 	<meta name="csrf-token" content="{{ csrf_token() }}">
@@ -34,7 +35,11 @@
 </head>
 <body>
 <header>
-	<!-- Bootstrap Navbar or custom header content here -->
+	<div class="container-fluid mt-2">
+		<button id="modeToggleBtn" class="btn btn-secondary float-end">
+			<i id="modeIcon" class="bi bi-sun"></i>
+		</button>
+	</div>
 </header>
 
 <main class="py-4">

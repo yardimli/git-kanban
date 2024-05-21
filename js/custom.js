@@ -287,9 +287,24 @@ function moveToTop(event, filename) {
 	});
 }
 
+function applyTheme(theme) {
+	if (theme === 'dark') {
+		$('body').addClass('dark-mode');
+		$('#modeIcon').removeClass('bi-sun').addClass('bi-moon');
+		$('#modeToggleBtn').attr('aria-label', 'Switch to Light Mode');
+	} else {
+		$('body').removeClass('dark-mode');
+		$('#modeIcon').removeClass('bi-moon').addClass('bi-sun');
+		$('#modeToggleBtn').attr('aria-label', 'Switch to Dark Mode');
+	}
+}
+
+
+
 let isDragging = false;
 let lastMouseY = 0;
 let scrollTimeout = null;
+let savedTheme = localStorage.getItem('theme') || 'light';
 
 
 $(document).ready(function () {
@@ -297,6 +312,15 @@ $(document).ready(function () {
 	const storyOwnerSelect = $('#storyOwner');
 	users.forEach(user => {
 		storyOwnerSelect.append(new Option(user, user));
+	});
+
+	applyTheme(savedTheme);
+	
+	$('#modeToggleBtn').on('click', function() {
+		const currentTheme = $('body').hasClass('dark-mode') ? 'dark' : 'light';
+		const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+		localStorage.setItem('theme', newTheme);
+		applyTheme(newTheme);
 	});
 
 // Create color buttons

@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "0",
+    "order": "1",
     "title": "New story location",
     "text": "Add new stories to the top of To Do column.",
     "owner": "Admin",

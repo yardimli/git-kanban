@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "2",
+    "order": "3",
     "title": "Light\/Dark Mode",
     "text": "add a button to switch between light and dark mode, also save the settings to localstorage.",
     "owner": "Admin",

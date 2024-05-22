@@ -112,8 +112,8 @@
 						</div>
 						<div id="save_result"></div>
 						<button type="submit" class="btn btn-primary">Save Story</button>
-
 						<button class="btn btn-secondary" id="showCommentModal">Add Comment</button>
+						<button type="button" class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
 					</form>
 					<div class="comments-section">
 						<hr>
@@ -178,6 +178,25 @@
 						</div>
 						<button type="submit" class="btn btn-primary">Save Comment</button>
 					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Confirmation Modal for Deleting Story -->
+	<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					Are you sure you want to delete this story? This action cannot be undone.
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
 				</div>
 			</div>
 		</div>

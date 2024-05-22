@@ -1,15 +1,11 @@
 Write a kanban board script that uses text files for each story, the filename should be created with the story title followed by a timestamp. The stories should be saved to a folder called cards. The format for each file should be a JSON. Each story will have a card column name, title, text and owner text fields, two data time fields, created and last updated and also a background color field.
-
 Use a bootstrap modal to edit/add stories that will be saved, then added to the to-do card column initially.
-
 The kanban should have 4 columns to-do, in-progress, finished, parking-lot
 ------------------------------------------------------------
 Certainly! Below is an example of a Kanban board implementation using PHP 8, Bootstrap 5, and text files for data storage. This implementation includes:
-
 1. A PHP script to handle the creation, reading, updating, and displaying of Kanban cards.
 2. A Bootstrap modal for adding and editing stories.
 3. HTML structure for the Kanban board with the required columns.
-
 ### Directory Structure
 Ensure you have the following directory structure:
 ```
@@ -19,7 +15,6 @@ Ensure you have the following directory structure:
     save_story.php
     load_stories.php
 ```
-
 ### index.php
 This file contains the main HTML structure and the Bootstrap modal for adding/editing stories.
 ```php
@@ -53,7 +48,6 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
     </style>
 </head>
 <body>
-
 <div class="container mt-5">
     <h1 class="text-center">Kanban Board</h1>
     <div class="text-end my-3">
@@ -74,7 +68,6 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
         </div>
     </div>
 </div>
-
 <!-- Modal for Adding/Editing Stories -->
 <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -108,17 +101,14 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
         </div>
     </div>
 </div>
-
 <script>
     $(document).ready(function() {
         loadStories();
-
         $('#storyForm').on('submit', function(e) {
             e.preventDefault();
             saveStory();
         });
     });
-
     function loadStories() {
         $.get('load_stories.php', function(data) {
             const stories = JSON.parse(data);
@@ -128,7 +118,6 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
             });
         });
     }
-
     function createCard(story) {
         return `<div class="kanban-card" style="background-color: ${story.backgroundColor}" data-filename="${story.filename}">
             <h5>${story.title}</h5>
@@ -137,7 +126,6 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
             <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button>
         </div>`;
     }
-
     function saveStory() {
         const formData = {
             filename: $('#storyFilename').val(),
@@ -147,18 +135,15 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
             backgroundColor: $('#storyBackgroundColor').val(),
             column: 'to-do'
         };
-
         $.post('save_story.php', formData, function(response) {
             $('#storyModal').modal('hide');
             $('#storyForm')[0].reset();
             $('#storyFilename').val('');
-
             const story = JSON.parse(response);
             const card = createCard(story);
             $(`.kanban-column[data-column="${story.column}"]`).append(card);
         });
     }
-
     function editStory(filename) {
         $.get(`cards/${filename}`, function(data) {
             const story = JSON.parse(data);
@@ -171,11 +156,9 @@ This file contains the main HTML structure and the Bootstrap modal for adding/ed
         });
     }
 </script>
-
 </body>
 </html>
 ```
-
 ### save_story.php
 This file handles saving and updating the story files.
 ```php
@@ -187,7 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $backgroundColor = $_POST['backgroundColor'];
     $column = $_POST['column'];
     $filename = $_POST['filename'];
-
     $created = $lastUpdated = date('Y-m-d H:i:s');
     if (empty($filename)) {
         $filename = $title . '_' . time() . '.json';
@@ -198,7 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $created = $existingStory['created'];
         }
     }
-
     $story = [
         'column' => $column,
         'title' => $title,
@@ -208,22 +189,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'created' => $created,
         'lastUpdated' => $lastUpdated
     ];
-
     file_put_contents(__DIR__ . '/cards/' . $filename, json_encode($story));
     $story['filename'] = $filename;
-
     echo json_encode($story);
 }
 ?>
 ```
-
 ### load_stories.php
 This file loads all the existing stories from the `cards` folder.
 ```php
 <?php
 $dir = __DIR__ . '/cards';
 $stories = [];
-
 if (is_dir($dir)) {
     $files = scandir($dir);
     foreach ($files as $file) {
@@ -235,11 +212,9 @@ if (is_dir($dir)) {
         }
     }
 }
-
 echo json_encode($stories);
 ?>
 ```
-
 ### Notes
 - Ensure the `cards` directory has the necessary write permissions for the web server to create and update files.
 - This implementation assumes basic error handling. For production environments, additional validation and error handling should be added.
@@ -264,17 +239,12 @@ function editStory(filename) {
 Change the background color to 10 options, each one having a matching background and text color instead. it should show 10 small buttons with background color and the text color inside.
 ------------------------------------------------------------
 To achieve this, we will modify the modal form to include 10 small buttons representing different background and text color combinations. When a button is clicked, it will set the background and text color for the story.
-
 Here’s how we can do it:
-
 1. Update the modal form to include the color options as buttons.
 2. Modify the JavaScript to handle setting the background and text color based on the selected button.
 3. Update the PHP code to save and load the text color along with the background color.
-
 ### HTML Changes
-
 Update the modal form to include a color palette section.
-
 ```html
 <div class="modal-body">
     <form id="storyForm">
@@ -303,11 +273,8 @@ Update the modal form to include a color palette section.
     </form>
 </div>
 ```
-
 ### JavaScript Changes
-
 Add the color options and handle the click event to set the background and text colors.
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -315,7 +282,6 @@ $(document).ready(function () {
         e.preventDefault();
         saveStory();
     });
-
     // Define color options
     const colorOptions = [
         { background: '#F28B82', text: '#000000' },
@@ -329,7 +295,6 @@ $(document).ready(function () {
         { background: '#FDCFE8', text: '#000000' },
         { background: '#E6C9A8', text: '#000000' },
     ];
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -343,7 +308,6 @@ $(document).ready(function () {
         colorPalette.append(button);
     });
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -353,7 +317,6 @@ function loadStories() {
         });
     });
 }
-
 function createCard(story) {
     return `<div class="kanban-card" style="background-color: ${story.backgroundColor}; color: ${story.textColor}" data-filename="${story.filename}">
         <h5>${story.title}</h5>
@@ -362,7 +325,6 @@ function createCard(story) {
         <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button>
     </div>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -382,7 +344,6 @@ function saveStory() {
         $(`.kanban-column[data-column="${story.column}"]`).append(card);
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -398,13 +359,9 @@ function editStory(filename) {
         .catch(error => console.error('Error loading story:', error));
 }
 ```
-
 ### PHP Changes
-
 Update the PHP code to handle the `textColor` field.
-
 #### `save_story.php`
-
 ```php
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -416,7 +373,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $column = $_POST['column'];
     $filename = $_POST['filename'];
     $created = $lastUpdated = date('Y-m-d H:i:s');
-
     if (empty($filename)) {
         $filename = $title . '_' . time() . '.json';
     } else {
@@ -426,7 +382,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $created = $existingStory['created'];
         }
     }
-
     $story = [
         'column' => $column,
         'title' => $title,
@@ -437,16 +392,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'created' => $created,
         'lastUpdated' => $lastUpdated
     ];
-
     file_put_contents(__DIR__ . '/cards/' . $filename, json_encode($story));
     $story['filename'] = $filename;
     echo json_encode($story);
 }
 ?>
 ```
-
 #### `load_stories.php`
-
 ```php
 <?php
 $dir = __DIR__ . '/cards';
@@ -465,24 +417,17 @@ if (is_dir($dir)) {
 echo json_encode($stories);
 ?>
 ```
-
 By making these changes, you will have 10 color options to choose from for your story cards, each represented by a button with the background and text color combination. The selected colors will be used when displaying the story cards on the Kanban board.
 ------------------------------------------------------------
 save story should update not append in javascript
 ------------------------------------------------------------
-
 To ensure that saving a story updates the existing card instead of appending a new one, we can modify the `saveStory` function to either update the existing card if it already exists or append a new one if it doesn't.
-
 Here's how you can achieve this:
-
 1. Check if a card with the same `filename` already exists in the DOM.
 2. If it exists, update its content.
 3. If it doesn't exist, append a new card.
-
 ### JavaScript Changes
-
 Update the `saveStory` function to handle updating existing cards.
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -490,7 +435,6 @@ $(document).ready(function () {
         e.preventDefault();
         saveStory();
     });
-
     // Define color options
     const colorOptions = [
         { background: '#F28B82', text: '#000000' },
@@ -504,7 +448,6 @@ $(document).ready(function () {
         { background: '#FDCFE8', text: '#000000' },
         { background: '#E6C9A8', text: '#000000' },
     ];
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -518,7 +461,6 @@ $(document).ready(function () {
         colorPalette.append(button);
     });
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -528,7 +470,6 @@ function loadStories() {
         });
     });
 }
-
 function createCard(story) {
     return `<div class="kanban-card" style="background-color: ${story.backgroundColor}; color: ${story.textColor}" data-filename="${story.filename}">
         <h5>${story.title}</h5>
@@ -537,7 +478,6 @@ function createCard(story) {
         <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button>
     </div>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -554,7 +494,6 @@ function saveStory() {
         const story = JSON.parse(response);
         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
         const existingCard = $(cardSelector);
-
         if (existingCard.length) {
             existingCard.replaceWith(createCard(story));
         } else {
@@ -562,7 +501,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -578,48 +516,34 @@ function editStory(filename) {
         .catch(error => console.error('Error loading story:', error));
 }
 ```
-
 ### PHP Changes
-
 No changes are needed in the PHP scripts. The existing `save_story.php` handles both creating and updating a story based on the provided `filename`.
-
 ### Summary
-
 With these changes:
-
 1. When you save a story, the `saveStory` function will check if a card with the same `filename` already exists in the DOM.
 2. If it exists, the card will be updated with the new data.
 3. If it doesn't exist, a new card will be appended to the appropriate column.
-
 This ensures that saving a story will update the existing card if it already exists, rather than appending a new one.
 ------------------------------------------------------------
 Show last update and create time on the card as n minutes, hours, days ago. When mouse hovers over the text, show the date time as hint
 ------------------------------------------------------------
 To display the creation and last update times on the card in a "n minutes/hours/days ago" format, and show the exact date and time as a tooltip when the user hovers over the text, we need to:
-
 1. Update the `createCard` function to include this information.
 2. Use a JavaScript library like `moment.js` to handle date formatting and relative time calculations.
 3. Ensure that the exact date and time appear as a tooltip using the `title` attribute.
-
 ### JavaScript Changes
-
 First, include the `moment.js` library in your project. You can download it or use a CDN:
-
 ```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 ```
-
 Next, update the `createCard` function to format and display the creation and last update times.
-
 ```javascript
 function formatRelativeTime(dateTime) {
     return moment(dateTime).fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
-
     return `
         <div class="kanban-card" style="background-color: ${story.backgroundColor}; color: ${story.textColor}" data-filename="${story.filename}">
             <h5>${story.title}</h5>
@@ -630,14 +554,12 @@ function createCard(story) {
             <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button>
         </div>`;
 }
-
 $(document).ready(function () {
     loadStories();
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Define color options
     const colorOptions = [
         { background: '#F28B82', text: '#000000' },
@@ -651,7 +573,6 @@ $(document).ready(function () {
         { background: '#FDCFE8', text: '#000000' },
         { background: '#E6C9A8', text: '#000000' },
     ];
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -665,7 +586,6 @@ $(document).ready(function () {
         colorPalette.append(button);
     });
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -675,7 +595,6 @@ function loadStories() {
         });
     });
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -692,7 +611,6 @@ function saveStory() {
         const story = JSON.parse(response);
         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
         const existingCard = $(cardSelector);
-
         if (existingCard.length) {
             existingCard.replaceWith(createCard(story));
         } else {
@@ -700,7 +618,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -716,15 +633,10 @@ function editStory(filename) {
         .catch(error => console.error('Error loading story:', error));
 }
 ```
-
 ### PHP Changes
-
 No changes are necessary for the PHP scripts since they already handle saving the `created` and `lastUpdated` times.
-
 ### Summary
-
 With these changes:
-
 1. The `createCard` function now includes the creation and last update times in a human-readable "n minutes/hours/days ago" format.
 2. The exact date and time are shown as a tooltip when the user hovers over the relative time text.
 3. The `moment.js` library is used to handle date formatting and relative time calculations.
@@ -733,11 +645,9 @@ i'll change the time to show in the same timezone as the browser by:
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
-
     return `
         <div class="kanban-card" style="background-color: ${story.backgroundColor}; color: ${story.textColor}" data-filename="${story.filename}">
             <h5>${story.title}</h5>
@@ -750,27 +660,17 @@ function createCard(story) {
 }
 ------------------------------------------------------------
 <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-5"> <h1 class="text-center">Kanban Board</h1> <div class="text-end my-3"> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column" data-column="to-do"> <h3>To-Do</h3> </div> <div class="kanban-column" data-column="in-progress"> <h3>In-Progress</h3> </div> <div class="kanban-column" data-column="finished"> <h3>Finished</h3> </div> <div class="kanban-column" data-column="parking-lot"> <h3>Parking-Lot</h3> </div> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
-
 $(document).ready(function () { loadStories(); $('#storyForm').on('submit', function (e) { e.preventDefault(); saveStory(); }); }); // Define color options const colorOptions = [ {background: '#F28B82', text: '#000000'}, {background: '#FBBC04', text: '#000000'}, {background: '#FFF475', text: '#000000'}, {background: '#CCFF90', text: '#000000'}, {background: '#A7FFEB', text: '#000000'}, {background: '#CBF0F8', text: '#000000'}, {background: '#AECBFA', text: '#000000'}, {background: '#D7AEFB', text: '#000000'}, {background: '#FDCFE8', text: '#000000'}, {background: '#E6C9A8', text: '#000000'}, ]; // Create color buttons const colorPalette = $('#colorPalette'); colorOptions.forEach(option => { const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`); button.on('click', function () { $('#storyBackgroundColor').val(option.background); $('#storyTextColor').val(option.text); $('#colorPalette button').removeClass('active'); $(this).addClass('active'); }); colorPalette.append(button); }); function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); stories.forEach(story => { const card = createCard(story); $(`.kanban-column[data-column="${story.column}"]`).append(card); }); }); } function formatRelativeTime(dateTime) { return moment.utc(dateTime).local().fromNow(); } function createCard(story) { const createdTime = formatRelativeTime(story.created); const updatedTime = formatRelativeTime(story.lastUpdated); return ` <div class="kanban-card" style="background-color: ${story.backgroundColor}; color: ${story.textColor}" data-filename="${story.filename}"> <h5>${story.title}</h5> <p>${story.text}</p> </br> <button class="btn btn-sm btn-secondary" onclick="editStory('${story.filename}')">Edit</button> </br> </br> <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Last Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span> </div>`; } function saveStory() { const formData = { filename: $('#storyFilename').val(), title: $('#storyTitle').val(), text: $('#storyText').val(), owner: $('#storyOwner').val(), backgroundColor: $('#storyBackgroundColor').val(), textColor: $('#storyTextColor').val(), column: 'to-do' }; $.post('save_story.php', formData, function (response) { $('#storyModal').modal('hide'); $('#storyForm')[0].reset(); const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const existingCard = $(cardSelector); if (existingCard.length) { existingCard.replaceWith(createCard(story)); } else { $(`.kanban-column[data-column="${story.column}"]`).append(createCard(story)); } }); } function editStory(filename) { fetch(`cards/${filename}`) .then(response => response.json()) .then(story => { $('#storyFilename').val(filename); $('#storyTitle').val(story.title); $('#storyText').val(story.text); $('#storyOwner').val(story.owner); $('#storyBackgroundColor').val(story.backgroundColor); $('#storyTextColor').val(story.textColor); $('#storyModal').modal('show'); }) .catch(error => console.error('Error loading story:', error)); }
-
 save_story.php
-
 <?php if ($_SERVER['REQUEST_METHOD'] === 'POST') { $title = $_POST['title']; $text = $_POST['text']; $owner = $_POST['owner']; $backgroundColor = $_POST['backgroundColor']; $textColor = $_POST['textColor']; $column = $_POST['column']; $filename = $_POST['filename']; $created = $lastUpdated = date('Y-m-d H:i:s'); if (empty($filename)) { $filename = $title . '_' . time() . '.json'; } else { $filepath = __DIR__ . '/cards/' . $filename; if (file_exists($filepath)) { $existingStory = json_decode(file_get_contents($filepath), true); $created = $existingStory['created']; } } $story = [ 'column' => $column, 'title' => $title, 'text' => $text, 'owner' => $owner, 'backgroundColor' => $backgroundColor, 'textColor' => $textColor, 'created' => $created, 'lastUpdated' => $lastUpdated ]; file_put_contents(__DIR__ . '/cards/' . $filename, json_encode($story)); $story['filename'] = $filename; echo json_encode($story); } ?>
-
 load_stories.php
-
 <?php $dir = __DIR__ . '/cards'; $stories = []; if (is_dir($dir)) { $files = scandir($dir); foreach ($files as $file) { if ($file !== '.' && $file !== '..') { $filepath = $dir . '/' . $file; $story = json_decode(file_get_contents($filepath), true); $story['filename'] = $file; $stories[] = $story; } } } echo json_encode($stories); ?>
-
 i want the user to be able to drag a card between the columns, when the card is dragged the file should be updated
 ------------------------------------------------------------
 To enable drag-and-drop functionality for moving cards between columns and updating the corresponding file, you can use the HTML5 Drag and Drop API combined with jQuery for handling the drag events and updating the server-side files.
-
 Here's the extended code to achieve this functionality:
-
 ### HTML and JavaScript
-
 Add attributes to `kanban-card` divs to make them draggable and handle drag events:
-
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -859,11 +759,8 @@ Add attributes to `kanban-card` divs to make them draggable and handle drag even
 </body>
 </html>
 ```
-
 ### JavaScript (custom.js)
-
 Update the `custom.js` file to include drag-and-drop functionality:
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -872,7 +769,6 @@ $(document).ready(function () {
         saveStory();
     });
 });
-
 // Define color options
 const colorOptions = [
     {background: '#F28B82', text: '#000000'},
@@ -886,7 +782,6 @@ const colorOptions = [
     {background: '#FDCFE8', text: '#000000'},
     {background: '#E6C9A8', text: '#000000'},
 ];
-
 // Create color buttons
 const colorPalette = $('#colorPalette');
 colorOptions.forEach(option => {
@@ -899,7 +794,6 @@ colorOptions.forEach(option => {
     });
     colorPalette.append(button);
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -909,11 +803,9 @@ function loadStories() {
         });
     });
 }
-
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
@@ -924,7 +816,6 @@ function createCard(story) {
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Last Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -948,7 +839,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -963,16 +853,13 @@ function editStory(filename) {
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 // Drag-and-drop functions
 function allowDrop(event) {
     event.preventDefault();
 }
-
 function drag(event) {
     event.dataTransfer.setData("text/plain", event.target.getAttribute('data-filename'));
 }
-
 function drop(event) {
     event.preventDefault();
     const filename = event.dataTransfer.getData("text/plain");
@@ -986,11 +873,8 @@ function drop(event) {
     });
 }
 ```
-
 ### PHP (update_story_column.php)
-
 Create a new PHP file to handle updating the story column:
-
 ```php
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -1006,21 +890,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ```
-
 With these updates, your Kanban board now supports drag-and-drop functionality for moving cards between columns and updates the corresponding file on the server.
 ------------------------------------------------------------
 function drop(event) { event.preventDefault(); const filename = event.dataTransfer.getData("text/plain"); const column = event.target.closest('.kanban-column').getAttribute('data-column'); $.post('update_story_column.php', { filename, column }, function (response) { const story = JSON.parse(response); const cardSelector = `.kanban-card[data-filename="${story.filename}"]`; const card = $(cardSelector); card.detach(); $(`.kanban-column[data-column="${column}"]`).append(card); }); }
-
 the post gets called and the file is updated, but nothing changes on the screen. if i refresh the page i can see the card in the correct column.
 ------------------------------------------------------------
 If the file is updated correctly but the changes are not immediately reflected on the screen, it's likely due to the way the DOM elements are being handled in the `drop` function. Specifically, the issue might be with how the `drop` event is being handled and how the card is being appended to the new column.
-
 Here’s a revised version of the `drop` function, ensuring that the card is properly moved and appended to the new column:
-
 ### JavaScript (custom.js)
-
 Update the `drop` function to use more consistent jQuery methods and ensure the card is correctly appended:
-
 ```javascript
 function drop(event) {
     event.preventDefault();
@@ -1030,23 +908,17 @@ function drop(event) {
         const story = JSON.parse(response);
         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
         const card = $(cardSelector);
-
         // Move card to the new column
         card.detach();
         $(`.kanban-column[data-column="${column}"]`).append(card);
     });
 }
 ```
-
 ### Debugging Tips
-
 1. **Inspect the DOM**: Use browser developer tools to inspect the DOM elements and ensure the card is being detached and appended correctly.
 2. **Console Logging**: Add console logging to verify that the `drop` function is being called and the elements are being manipulated as expected.
-
 ### Example with Console Logging
-
 Add console logging to help debug the issue:
-
 ```javascript
 function drop(event) {
     event.preventDefault();
@@ -1058,7 +930,6 @@ function drop(event) {
         const cardSelector = `.kanban-card[data-filename="${story.filename}"]`;
         const card = $(cardSelector);
         console.log(`Card Selector: ${cardSelector}`); // Debug log
-
         // Move card to the new column
         card.detach();
         console.log(`Detaching card: ${card}`); // Debug log
@@ -1067,11 +938,8 @@ function drop(event) {
     });
 }
 ```
-
 ### HTML Updates
-
 Ensure that the HTML structure allows for proper event handling and that the `kanban-column` divs can accept dropped elements:
-
 ```html
 <div class="kanban-board" id="kanbanBoard">
     <div class="kanban-column" data-column="to-do" ondrop="drop(event)" ondragover="allowDrop(event)">
@@ -1088,11 +956,8 @@ Ensure that the HTML structure allows for proper event handling and that the `ka
     </div>
 </div>
 ```
-
 ### Ensure Styles and Structure
-
 Make sure the CSS and HTML structure properly support the drag-and-drop interactions. For example, ensure the `kanban-column` divs have appropriate styles to show they can accept drops:
-
 ```css
 .kanban-column {
     border: 1px solid #ddd;
@@ -1101,9 +966,7 @@ Make sure the CSS and HTML structure properly support the drag-and-drop interact
     background-color: #f9f9f9;
 }
 ```
-
 ### Conclusion
-
 By adding debugging logs and ensuring the proper handling of DOM elements, you can determine if the cards are being correctly moved and appended in the `drop` function. This should help you resolve the issue where changes are not immediately reflected on the screen without a page refresh.
 ------------------------------------------------------------
 it literally replied with the same function, but instead of dvelling on this lets change it with a visual drag and drop library.
@@ -1111,13 +974,9 @@ it literally replied with the same function, but instead of dvelling on this let
 i want to use a library where i can see the card being dragged
 ------------------------------------------------------------
 To enhance the drag-and-drop functionality visually and make it more user-friendly, you can use the `SortableJS` library. `SortableJS` is a powerful and flexible JavaScript library that provides sortable drag-and-drop lists.
-
 Here's how you can integrate `SortableJS` into your Kanban board:
-
 ### Step 1: Include SortableJS
-
 First, include the SortableJS library in your HTML file. You can use a CDN for this purpose:
-
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -1208,11 +1067,8 @@ First, include the SortableJS library in your HTML file. You can use a CDN for t
 </body>
 </html>
 ```
-
 ### Step 2: Initialize SortableJS
-
 In your `custom.js` file, initialize SortableJS for each column and handle the `onEnd` event to update the story's column in the backend.
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -1220,7 +1076,6 @@ $(document).ready(function () {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column').each(function () {
         new Sortable(this, {
@@ -1235,7 +1090,6 @@ $(document).ready(function () {
         });
     });
 });
-
 // Define color options
 const colorOptions = [
     {background: '#F28B82', text: '#000000'},
@@ -1249,7 +1103,6 @@ const colorOptions = [
     {background: '#FDCFE8', text: '#000000'},
     {background: '#E6C9A8', text: '#000000'},
 ];
-
 // Create color buttons
 const colorPalette = $('#colorPalette');
 colorOptions.forEach(option => {
@@ -1262,7 +1115,6 @@ colorOptions.forEach(option => {
     });
     colorPalette.append(button);
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -1272,11 +1124,9 @@ function loadStories() {
         });
     });
 }
-
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
@@ -1287,7 +1137,6 @@ function createCard(story) {
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Last Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -1311,7 +1160,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -1326,7 +1174,6 @@ function editStory(filename) {
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 function updateStoryColumn(filename, newColumn) {
     $.post('update_story_column.php', { filename, column: newColumn }, function (response) {
         const story = JSON.parse(response);
@@ -1337,11 +1184,8 @@ function updateStoryColumn(filename, newColumn) {
     });
 }
 ```
-
 ### PHP (update_story_column.php)
-
 Ensure the backend PHP code for updating the story column remains the same:
-
 ```php
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -1357,7 +1201,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ```
-
 By integrating `SortableJS`, you can visually see the card being dragged between columns, providing a smoother user experience. The `onEnd` event of `SortableJS` is used to update the story's column in the backend.
 ------------------------------------------------------------
 <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-5"> <h1 class="text-center">Git Kanban Board</h1> <div class="text-end my-3"> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
@@ -1367,7 +1210,6 @@ at the bottom of the page add a button that says add user. It should show a moda
 it should generate a hash from the password using phps built in functions.
 ------------------------------------------------------------
 Sure! Below is the modified HTML and JavaScript to include a button at the bottom of the page that opens a modal to add a user. The modal will have inputs for the username and password, and upon clicking "Generate," it will show a JSON string with the username and a hashed password.
-
 ### Updated HTML:
 ```html
 <!DOCTYPE html>
@@ -1453,7 +1295,6 @@ Sure! Below is the modified HTML and JavaScript to include a button at the botto
                 </div>
             </div>
         </div>
-
         <!-- Button to add user -->
         <div class="text-end my-3">
             <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
@@ -1497,11 +1338,9 @@ Sure! Below is the modified HTML and JavaScript to include a button at the botto
 </body>
 </html>
 ```
-
 ### Custom JavaScript (`custom.js`):
 ```javascript
 // Existing JavaScript code...
-
 // Define color options
 const colorOptions = [
     {background: '#F28B82', text: '#000000'},
@@ -1515,7 +1354,6 @@ const colorOptions = [
     {background: '#FDCFE8', text: '#000000'},
     {background: '#E6C9A8', text: '#000000'},
 ];
-
 // Create color buttons
 const colorPalette = $('#colorPalette');
 colorOptions.forEach(option => {
@@ -1528,7 +1366,6 @@ colorOptions.forEach(option => {
     });
     colorPalette.append(button);
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -1538,11 +1375,9 @@ function loadStories() {
         });
     });
 }
-
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
@@ -1553,7 +1388,6 @@ function createCard(story) {
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div></li>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -1577,7 +1411,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -1592,7 +1425,6 @@ function editStory(filename) {
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 function updateStoryColumn(filename, newColumn) {
     $.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) {
         const story = JSON.parse(response);
@@ -1602,14 +1434,12 @@ function updateStoryColumn(filename, newColumn) {
         $(`.kanban-column-ul[data-column="${newColumn}"]`).append(card);
     });
 }
-
 $(document).ready(function () {
     loadStories();
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -1623,12 +1453,10 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
         const userPassword = $('#userPassword').val();
-
         if (userName && userPassword) {
             $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
                 $('#userJsonOutput').text(response);
@@ -1637,7 +1465,6 @@ $(document).ready(function () {
     });
 });
 ```
-
 ### PHP (generate_user.php):
 ```php
 <?php
@@ -1645,25 +1472,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = preg_replace('/\s+/', '', $_POST['username']);
     $username = preg_replace('/[^\w\-]/', '', $username);
     $password = $_POST['password'];
-
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
     $response = [
         'username' => $username,
         'password' => $hashedPassword
     ];
-
     echo json_encode($response);
 }
 ?>
 ```
-
 This code adds a new button at the bottom of the page that triggers a modal for adding a user. The modal includes inputs for the username and password, and upon clicking "Generate," it sends the data to the `generate_user.php` script, which generates a hash for the password and returns a JSON string with the username and hashed password. The JSON string is then displayed in the modal.
 ------------------------------------------------------------
 add a copy button to the modal
 ------------------------------------------------------------
 Sure! You can add a "Copy" button to the modal to copy the generated JSON string to the clipboard. Below is the updated code with the "Copy" button functionality:
-
 ### Updated HTML:
 ```html
 <!DOCTYPE html>
@@ -1749,7 +1571,6 @@ Sure! You can add a "Copy" button to the modal to copy the generated JSON string
                 </div>
             </div>
         </div>
-
         <!-- Button to add user -->
         <div class="text-end my-3">
             <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
@@ -1794,11 +1615,9 @@ Sure! You can add a "Copy" button to the modal to copy the generated JSON string
 </body>
 </html>
 ```
-
 ### Updated JavaScript (`custom.js`):
 ```javascript
 // Existing JavaScript code...
-
 // Define color options
 const colorOptions = [
     {background: '#F28B82', text: '#000000'},
@@ -1812,7 +1631,6 @@ const colorOptions = [
     {background: '#FDCFE8', text: '#000000'},
     {background: '#E6C9A8', text: '#000000'},
 ];
-
 // Create color buttons
 const colorPalette = $('#colorPalette');
 colorOptions.forEach(option => {
@@ -1825,7 +1643,6 @@ colorOptions.forEach(option => {
     });
     colorPalette.append(button);
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
@@ -1835,11 +1652,9 @@ function loadStories() {
         });
     });
 }
-
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
@@ -1850,7 +1665,6 @@ function createCard(story) {
         <p><strong>Owner:</strong> ${story.owner} <br><strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
     </div></li>`;
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -1874,7 +1688,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`cards/${filename}`)
         .then(response => response.json())
@@ -1889,7 +1702,6 @@ function editStory(filename) {
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 function updateStoryColumn(filename, newColumn) {
     $.post('update_story_column.php', { filename: filename, column: newColumn }, function (response) {
         const story = JSON.parse(response);
@@ -1899,14 +1711,12 @@ function updateStoryColumn(filename, newColumn) {
         $(`.kanban-column-ul[data-column="${newColumn}"]`).append(card);
     });
 }
-
 $(document).ready(function () {
     loadStories();
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -1920,19 +1730,16 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
         const userPassword = $('#userPassword').val();
-
         if (userName && userPassword) {
             $.post('generate_user.php', { username: userName, password: userPassword }, function (response) {
                 $('#userJsonOutput').text(response);
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -1944,7 +1751,6 @@ $(document).ready(function () {
     });
 });
 ```
-
 ### PHP (generate_user.php):
 ```php
 <?php
@@ -1952,19 +1758,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = preg_replace('/\s+/', '', $_POST['username']);
     $username = preg_replace('/[^\w\-]/', '', $username);
     $password = $_POST['password'];
-
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
     $response = [
         'username' => $username,
         'password' => $hashedPassword
     ];
-
     echo json_encode($response);
 }
 ?>
 ```
-
 The above changes add a "Copy" button to the user modal. When you click the "Generate" button, it generates a JSON string with the username and hashed password. When you click the "Copy" button, the JSON string is copied to the clipboard, and an alert is shown to confirm the action.
 ------------------------------------------------------------
 <?php include_once 'settings.php'; ?><!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-5"> <h1 class="text-center">Git Kanban Board</h1> <div class="text-end my-3"> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
@@ -1974,20 +1776,15 @@ The above changes add a "Copy" button to the user modal. When you click the "Gen
 add a login.php page that will be called if $_SESSION['user'] is empty. Design a simple login form that will check against the users in settings php and redirect back to index after setting the session
 ------------------------------------------------------------
 Certainly! Here's how you can create a `login.php` page that will be used to authenticate users and set a session.
-
 First, let's create the `login.php` page:
-
 ```php
 <?php
 session_start();
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
-
     $userFound = false;
-
     foreach ($users as $user) {
         if ($user['username'] === $username && password_verify($password, $user['password'])) {
             $_SESSION['user'] = $username;
@@ -1996,13 +1793,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
     }
-
     if (!$userFound) {
         $error = "Invalid username or password";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2036,14 +1831,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 </html>
 ```
-
 Next, modify your `index.php` to check if the user is logged in:
-
 ```php
 <?php
 session_start();
 include_once 'settings.php';
-
 if (empty($_SESSION['user'])) {
     header('Location: login.php');
     exit();
@@ -2080,14 +1872,11 @@ if (empty($_SESSION['user'])) {
 </body>
 </html>
 ```
-
 This setup ensures that:
 1. If a user accesses `index.php` without being logged in, they will be redirected to `login.php`.
 2. The `login.php` page authenticates the user against the data from `settings.php` and sets a session if authentication is successful.
 3. After successful login, the user is redirected back to `index.php`.
-
 Make sure that the `settings.php` file contains the `$users` array as you have it.
-
 This approach keeps your application secure by ensuring only authorized users can access the Kanban board.
 ------------------------------------------------------------
 I'll style it with something from codepen and add a logout button myself
@@ -2102,17 +1891,12 @@ index.php
 I want to be able to save and load the order of the cards in the columns. I want the order information to be saved into the story file
 ------------------------------------------------------------
 To save and load the order of the cards in the columns, you'll need to update your backend and frontend code accordingly. Specifically, you'll need to:
-
 1. Update the `save_story.php` script to handle the order of the cards.
 2. Update the `update_story_column.php` script to handle the order of the cards within a column.
 3. Update the JavaScript to save the order of the cards whenever they are rearranged.
-
 Here's how you can do it:
-
 ### Backend: save_story.php
-
 Update the `save_story.php` script to save and load the order of the cards.
-
 ```php
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -2122,7 +1906,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $owner = $_POST['owner'];
     $backgroundColor = $_POST['backgroundColor'];
     $textColor = $_POST['textColor'];
-
     $filepath = __DIR__ . '/cards/' . $filename;
     $story = [
         'title' => $title,
@@ -2134,16 +1917,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'column' => isset($_POST['column']) ? $_POST['column'] : 'to-do',
         'order' => isset($_POST['order']) ? $_POST['order'] : 0
     ];
-
     file_put_contents($filepath, json_encode($story, JSON_PRETTY_PRINT));
     echo json_encode($story);
 }
 ```
-
 ### Backend: update_story_column.php
-
 Update the `update_story_column.php` script to also update the order of the cards.
-
 ```php
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -2151,7 +1930,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $column = $_POST['column'];
     $order = $_POST['order'];  // New line to get the order
     $filepath = __DIR__ . '/cards/' . $filename;
-
     if (file_exists($filepath)) {
         $story = json_decode(file_get_contents($filepath), true);
         $story['column'] = $column;
@@ -2162,13 +1940,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ```
-
 ### Frontend: JavaScript
-
 Update the JavaScript to save the order of the cards whenever they are rearranged.
-
 #### Update the `loadStories` function to sort the stories by order.
-
 ```javascript
 function loadStories() {
     $.get('load_stories.php', function (data) {
@@ -2182,9 +1956,7 @@ function loadStories() {
     });
 }
 ```
-
 #### Update the `updateStoryColumn` function to include the new order.
-
 ```javascript
 function updateStoryColumn(filename, newColumn, newOrder) {
     $.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) {
@@ -2193,9 +1965,7 @@ function updateStoryColumn(filename, newColumn, newOrder) {
     });
 }
 ```
-
 #### Update the `Sortable` initialization to save the order of the cards.
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -2203,7 +1973,6 @@ $(document).ready(function () {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2214,7 +1983,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2223,7 +1991,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2234,7 +2001,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2246,27 +2012,21 @@ $(document).ready(function () {
     });
 });
 ```
-
 ### Summary
-
 - The `save_story.php` script has been updated to include an `order` field.
 - The `update_story_column.php` script has been updated to handle the order of the cards.
 - The JavaScript has been updated to save the order of the cards whenever they are rearranged.
-
 This should ensure that the order of the cards is saved and loaded correctly.
 ------------------------------------------------------------
 function loadStories() { $.get('load_stories.php', function (data) { const stories = JSON.parse(data); // Sort stories by order stories.sort((a, b) => a.order - b.order); stories.forEach(story => { const card = createCard(story); $(`.kanban-column-ul[data-column="${story.column}"]`).append(card); }); }); }
 here we need to sort them for each column separately.
 ------------------------------------------------------------
 To sort the stories separately for each column, you'll need to first group the stories by their column and then sort the stories within each group. You can achieve this by using JavaScript's `reduce` function to group the stories and then sorting each group's stories by their order.
-
 Here's how you can modify the `loadStories` function to achieve this:
-
 ```javascript
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
-
         // Group stories by column
         const groupedStories = stories.reduce((acc, story) => {
             if (!acc[story.column]) {
@@ -2275,12 +2035,10 @@ function loadStories() {
             acc[story.column].push(story);
             return acc;
         }, {});
-
         // Iterate through each column
         Object.keys(groupedStories).forEach(column => {
             // Sort stories by order within each column
             groupedStories[column].sort((a, b) => a.order - b.order);
-
             // Append sorted stories to the respective column
             groupedStories[column].forEach(story => {
                 const card = createCard(story);
@@ -2290,18 +2048,13 @@ function loadStories() {
     });
 }
 ```
-
 ### Explanation:
-
 1. **Grouping Stories by Column**:
    - The `reduce` function is used to group the stories by their column. This creates an object where the keys are the column names and the values are arrays of stories belonging to those columns.
-
 2. **Sorting Stories by Order within Each Column**:
    - For each column, the stories are sorted by their `order` property using the `sort` function.
-
 3. **Appending Sorted Stories to the Respective Column**:
    - After sorting the stories within each column, they are appended to the respective column's unordered list (`ul`) in the DOM.
-
 This ensures that the stories are grouped by their columns and sorted within each column before being displayed on the Kanban board.
 ------------------------------------------------------------
 <?php session_start(); include_once 'settings.php'; if (empty($_SESSION['user'])) { header('Location: login.php'); exit(); } ?> <!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>Git Kanban Board</title> <!-- FAVICON AND TOUCH ICONS --> <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon"> <link rel="icon" href="images/favicon.ico" type="image/x-icon"> <link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png"> <link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png"> <link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png"> <link rel="apple-touch-icon" href="images/apple-touch-icon.png"> <link rel="icon" href="images/apple-touch-icon.png" type="image/x-icon"> <!-- Bootstrap CSS --> <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- Custom styles for this template --> <link href="css/custom.css" rel="stylesheet"> <!-- If you have custom CSS --> <meta name="csrf-token" content="{{ csrf_token() }}"> <script> var csrf_token = "{{ csrf_token() }}"; </script> </head> <body> <header> <!-- Bootstrap Navbar or custom header content here --> </header> <main class="py-4"> <div class="container mt-2"> <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1> <div> <div class="my-3 d-inline-block"> Hello <?php echo $_SESSION['user']; ?>, </div> <div class="my-3 d-inline-block float-end"> <a href="logout.php" class="btn btn-danger">Log Out</a> <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#storyModal">Add Story</button> </div> </div> <div class="kanban-board" id="kanbanBoard"> <div class="kanban-column"> <h3>To-Do</h3> <ul class="kanban-column-ul" id="to-do-column" data-column="to-do"> </ul> </div> <div class="kanban-column"> <h3>In-Progress</h3> <ul class="kanban-column-ul" id="in-progress-column" data-column="in-progress"> </ul> </div> <div class="kanban-column"> <h3>Finished</h3> <ul class="kanban-column-ul" id="finished-column" data-column="finished"> </ul> </div> <div class="kanban-column"> <h3>Parking-Lot</h3> <ul class="kanban-column-ul" id="parking-lot-column" data-column="parking-lot"> </ul> </div> </div> <!-- Button to add user --> <div class="text-end my-3"> <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button> </div> </div> <!-- Modal for Adding/Editing Stories --> <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="storyModalLabel">Add Story</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="storyForm"> <input type="hidden" id="storyFilename"> <div class="mb-3"> <label for="storyTitle" class="form-label">Title</label> <input type="text" class="form-control" id="storyTitle" required> </div> <div class="mb-3"> <label for="storyText" class="form-label">Text</label> <textarea class="form-control" id="storyText" rows="3" required></textarea> </div> <div class="mb-3"> <label for="storyOwner" class="form-label">Owner</label> <input type="text" class="form-control" id="storyOwner" required> </div> <div class="mb-3"> <label class="form-label">Background Color</label> <div id="colorPalette" class="d-flex flex-wrap"> <!-- Color buttons will be inserted here dynamically --> </div> </div> <input type="hidden" id="storyBackgroundColor"> <input type="hidden" id="storyTextColor"> <button type="submit" class="btn btn-primary">Save Story</button> </form> </div> </div> </div> </div> <!-- Modal for Adding User --> <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true"> <div class="modal-dialog"> <div class="modal-content"> <div class="modal-header"> <h5 class="modal-title" id="addUserModalLabel">Add User</h5> <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> </div> <div class="modal-body"> <form id="addUserForm"> <div class="mb-3"> <label for="userName" class="form-label">Username</label> <input type="text" class="form-control" id="userName" required> </div> <div class="mb-3"> <label for="userPassword" class="form-label">Password</label> <input type="password" class="form-control" id="userPassword" required> </div> <button type="button" class="btn btn-primary" id="generateUser">Generate</button> </form> <div class="mt-3"> <pre id="userJsonOutput"></pre> <button type="button" class="btn btn-secondary" id="copyUserJson">Copy</button> </div> </div> </div> </div> </div> </main> <!-- jQuery and Bootstrap Bundle (includes Popper) --> <script src="js/jquery-3.7.0.min.js"></script> <script src="js/bootstrap.min.js"></script> <script src="js/moment.min.js"></script> <script src="js/sortable.min.js"></script> <!-- Your custom scripts --> <script src="js/custom.js"></script> <!-- If you have custom JS --> </body> </html>
@@ -2309,24 +2062,18 @@ This ensures that the stories are grouped by their columns and sorted within eac
 when dragging cards and the mouse is close to the top or bottom of the screen scroll the browser
 ------------------------------------------------------------
 To enable auto-scrolling of the browser window when dragging cards close to the top or bottom of the screen, you can make use of the `autoScroll` option provided by the SortableJS library. This option allows the page to scroll when dragging items near the edges of the viewport.
-
 Here’s how you can modify the existing Sortable initialization to include auto-scrolling:
-
 1. Add the `autoScroll` option to the Sortable initialization.
 2. Set the `scroll` option to `true` to enable scrolling.
 3. Adjust the `scrollSensitivity` and `scrollSpeed` as needed.
-
 Below is the updated code snippet for initializing Sortable with the auto-scroll feature:
-
 ```javascript
 $(document).ready(function () {
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll enabled
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2340,7 +2087,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2349,7 +2095,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2360,7 +2105,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2372,24 +2116,19 @@ $(document).ready(function () {
     });
 });
 ```
-
 This setup will ensure that the browser window scrolls automatically when you drag items near the edges of the screen, enhancing the user experience when managing the Kanban board.
 ------------------------------------------------------------
 that is for scrolling the container, but i use the whole document and dont have overflow:auto
 ------------------------------------------------------------
 Got it. If you want to enable auto-scrolling for the entire document when dragging items to the top or bottom of the viewport, you can use the `onMove` event handler provided by SortableJS and manually control the scrolling of the document using `window.scrollBy`.
-
 Here is the updated code to achieve this functionality:
-
 ```javascript
 $(document).ready(function () {
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll for the document
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2400,7 +2139,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2410,10 +2148,8 @@ $(document).ready(function () {
             onMove: function (evt) {
                 const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
                 const scrollSpeed = 20; // Speed at which the page scrolls
-
                 const mouseY = evt.originalEvent.clientY;
                 const viewportHeight = window.innerHeight;
-
                 if (mouseY < scrollSensitivity) {
                     // Scroll up
                     window.scrollBy(0, -scrollSpeed);
@@ -2424,7 +2160,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2435,7 +2170,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2447,38 +2181,28 @@ $(document).ready(function () {
     });
 });
 ```
-
 In this code:
-
 1. The `onMove` event handler checks the Y-coordinate of the mouse pointer (`mouseY`) during the drag operation.
 2. It then compares this coordinate with the `scrollSensitivity` value to determine if the mouse pointer is near the top or bottom edge of the viewport.
 3. If the mouse pointer is within the sensitivity range, it scrolls the document up or down by the `scrollSpeed` value.
-
 This way, the entire document will scroll up or down as you drag items near the top or bottom of the viewport, making it easier to manage items on the Kanban board.
 ------------------------------------------------------------
 that event only fires if cards are swapping
 ------------------------------------------------------------
 To enable auto-scrolling for the entire document when dragging items near the top or bottom of the viewport and to ensure it works continuously as the item is being dragged, you can use a combination of `mousemove` event listeners and some custom logic.
-
 Here's how you can achieve this:
-
 1. Attach a `mousemove` event listener to the document to monitor the mouse position during the drag operation.
 2. Use `requestAnimationFrame` to perform smooth scrolling.
-
 Here's the updated code to include this functionality:
-
 ```javascript
 $(document).ready(function () {
     let isDragging = false;
     let scrollInterval;
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll for the document
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2491,12 +2215,10 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 isDragging = false;
                 stopAutoScroll();
-
                 const item = evt.item;
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2505,29 +2227,24 @@ $(document).ready(function () {
             }
         });
     });
-
     function startAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
         }
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     function stopAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
             scrollInterval = null;
         }
     }
-
     function autoScroll() {
         if (!isDragging) return;
-
         const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
         const scrollSpeed = 20; // Speed at which the page scrolls
         const mouseY = event.clientY;
         const viewportHeight = window.innerHeight;
-
         if (mouseY < scrollSensitivity) {
             // Scroll up
             window.scrollBy(0, -scrollSpeed);
@@ -2535,10 +2252,8 @@ $(document).ready(function () {
             // Scroll down
             window.scrollBy(0, scrollSpeed);
         }
-
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2549,7 +2264,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2561,40 +2275,30 @@ $(document).ready(function () {
     });
 });
 ```
-
 In this code:
-
 1. The `onStart` event of the Sortable instance sets the `isDragging` flag to `true` and starts the `autoScroll` function.
 2. The `onEnd` event sets `isDragging` to `false` and stops the `autoScroll` function.
 3. The `autoScroll` function checks the mouse position relative to the viewport and scrolls the document if the mouse is near the top or bottom edge.
 4. `requestAnimationFrame` is used to ensure smooth scrolling.
-
 This ensures that the document scrolls smoothly as you drag items near the edges of the viewport, providing a better user experience.
 ------------------------------------------------------------
 TypeError: Cannot read properties of undefined (reading 'clientY')
     at autoScroll (custom.js:140:23)
 ------------------------------------------------------------
 The error occurs because the `event` object is not passed to the `autoScroll` function. To fix this, you need to pass the `mousemove` event to the `autoScroll` function so it can read the `clientY` property.
-
 Here's how you can update the code to pass the event object correctly:
-
 1. Attach a `mousemove` event listener to the document.
 2. Within the `mousemove` event handler, call the `autoScroll` function and pass the event object.
-
 Here's the updated code:
-
 ```javascript
 $(document).ready(function () {
     let isDragging = false;
     let scrollInterval;
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll for the document
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2607,12 +2311,10 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 isDragging = false;
                 document.removeEventListener('mousemove', autoScroll);
-
                 const item = evt.item;
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2621,15 +2323,12 @@ $(document).ready(function () {
             }
         });
     });
-
     function autoScroll(event) {
         if (!isDragging) return;
-
         const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
         const scrollSpeed = 20; // Speed at which the page scrolls
         const mouseY = event.clientY;
         const viewportHeight = window.innerHeight;
-
         if (mouseY < scrollSensitivity) {
             // Scroll up
             window.scrollBy(0, -scrollSpeed);
@@ -2637,10 +2336,8 @@ $(document).ready(function () {
             // Scroll down
             window.scrollBy(0, scrollSpeed);
         }
-
         scrollInterval = requestAnimationFrame(() => autoScroll(event));
     }
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2651,7 +2348,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2663,41 +2359,31 @@ $(document).ready(function () {
     });
 });
 ```
-
 In this updated code:
-
 1. The `mousemove` event listener is added to the document when dragging starts (`onStart`).
 2. The `mousemove` event listener is removed when dragging ends (`onEnd`).
 3. The `autoScroll` function now takes the `event` object as an argument to access `event.clientY`.
 4. `requestAnimationFrame` is used to ensure smooth scrolling by recursively calling `autoScroll`.
-
 This should resolve the `TypeError` and enable smooth auto-scrolling of the document when dragging items near the top or bottom of the viewport.
 ------------------------------------------------------------
 document.addEventListener('mousemove', autoScroll);
 doesnt get called
 ------------------------------------------------------------
 It looks like the `mousemove` event listener isn't being triggered because the element being dragged might be capturing the mouse events. To ensure that the document-level `mousemove` event is captured correctly, you can use a combination of `mousemove` and `mousemove` event listeners within the SortableJS configuration.
-
 Here’s a revised approach that ensures the `mousemove` event is captured during the dragging process:
-
 1. Use the `onMove` event of SortableJS to call the `autoScroll` function.
 2. Use the `mousemove` event listener on the document to continuously update the mouse position.
-
 Here's the updated code:
-
 ```javascript
 $(document).ready(function () {
     let isDragging = false;
     let lastMouseY = 0;
     let scrollInterval;
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll for the document
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2710,12 +2396,10 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 isDragging = false;
                 stopAutoScroll();
-
                 const item = evt.item;
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2727,28 +2411,23 @@ $(document).ready(function () {
             }
         });
     });
-
     function startAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
         }
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     function stopAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
             scrollInterval = null;
         }
     }
-
     function autoScroll() {
         if (!isDragging) return;
-
         const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
         const scrollSpeed = 20; // Speed at which the page scrolls
         const viewportHeight = window.innerHeight;
-
         if (lastMouseY < scrollSensitivity) {
             // Scroll up
             window.scrollBy(0, -scrollSpeed);
@@ -2756,10 +2435,8 @@ $(document).ready(function () {
             // Scroll down
             window.scrollBy(0, scrollSpeed);
         }
-
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2770,7 +2447,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2782,38 +2458,29 @@ $(document).ready(function () {
     });
 });
 ```
-
 In this code:
-
 1. The `onMove` event of SortableJS updates the global `lastMouseY` variable with the current mouse Y-coordinate.
 2. The `startAutoScroll` function initializes the `autoScroll` function using `requestAnimationFrame`.
 3. The `stopAutoScroll` function cancels the scrolling when dragging stops.
 4. The `autoScroll` function uses the `lastMouseY` variable to determine whether to scroll the document up or down.
-
 This should ensure that the auto-scrolling functionality works correctly while dragging items near the edges of the viewport.
 ------------------------------------------------------------
 i want it to run outside the sortable, sortable should only set the isdragging boolean
 ------------------------------------------------------------
 Got it! You want the auto-scrolling to be controlled independently of Sortable, with Sortable only setting the `isDragging` flag. Here's how you can achieve that:
-
 1. Attach a `mousemove` event listener to the document to monitor the mouse position.
 2. Continuously check the `isDragging` flag and perform scrolling if necessary.
-
 Here's the updated code:
-
 ```javascript
 $(document).ready(function () {
     let isDragging = false;
     let lastMouseY = 0;
     let scrollInterval;
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column with auto-scroll for the document
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -2828,7 +2495,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -2840,20 +2506,16 @@ $(document).ready(function () {
             }
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('mousemove', function (event) {
         lastMouseY = event.clientY;
     });
-
     // Auto-scroll function
     function autoScroll() {
         if (!isDragging) return;
-
         const scrollSensitivity = 80; // Distance from the edge of the viewport to start scrolling
         const scrollSpeed = 20; // Speed at which the page scrolls
         const viewportHeight = window.innerHeight;
-
         if (lastMouseY < scrollSensitivity) {
             // Scroll up
             window.scrollBy(0, -scrollSpeed);
@@ -2861,27 +2523,22 @@ $(document).ready(function () {
             // Scroll down
             window.scrollBy(0, scrollSpeed);
         }
-
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     // Start the auto-scroll loop
     startAutoScroll();
-
     function startAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
         }
         scrollInterval = requestAnimationFrame(autoScroll);
     }
-
     function stopAutoScroll() {
         if (scrollInterval) {
             cancelAnimationFrame(scrollInterval);
             scrollInterval = null;
         }
     }
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -2892,7 +2549,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -2904,15 +2560,12 @@ $(document).ready(function () {
     });
 });
 ```
-
 In this solution:
-
 1. The `mousemove` event listener on the document updates the `lastMouseY` variable with the current mouse Y-coordinate.
 2. The `autoScroll` function continuously checks the `isDragging` flag and performs the scrolling if necessary.
 3. `requestAnimationFrame` is used to ensure smooth scrolling by recursively calling `autoScroll`.
 4. The `onStart` and `onEnd` events of Sortable only set the `isDragging` flag to `true` and `false`, respectively.
 5. The `startAutoScroll` function kicks off the auto-scrolling loop.
-
 This setup ensures that the auto-scrolling runs independently of Sortable and correctly scrolls the document based on the mouse position when dragging items near the top or bottom of the viewport.
 ------------------------------------------------------------
 generally it didnt work it keeps suggesting back and forth with animation frames that just stack up and slow down the browser, or putting events back into the sortable which isnt working properly. So I'll add my own logic to the autoScroll function. Wasted an hour on something that should have been simple.
@@ -2920,16 +2573,11 @@ generally it didnt work it keeps suggesting back and forth with animation frames
 when mouse hovers over a card show a button that when clicked will move the card to the top of the list.
 ------------------------------------------------------------
 To achieve this functionality, we need to make a few modifications to your existing code. Specifically, we will:
-
 1. Add a button that appears when you hover over a card.
 2. Implement JavaScript logic to move the card to the top of the list when the button is clicked.
-
 Here's how you can do it:
-
 ### HTML and CSS Modifications
-
 First, add the necessary CSS to make the button appear only on hover:
-
 ```css
 <style>
     .kanban-card {
@@ -2947,11 +2595,8 @@ First, add the necessary CSS to make the button appear only on hover:
     }
 </style>
 ```
-
 ### JavaScript Modifications
-
 Next, modify the `createCard` function to include the new button:
-
 ```javascript
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
@@ -2971,21 +2616,15 @@ function createCard(story) {
         </li>`;
 }
 ```
-
 ### Adding the Move to Top Function
-
 Now, add the `moveToTop` function to handle the card move:
-
 ```javascript
 function moveToTop(event, filename) {
     event.stopPropagation(); // Prevent triggering the editStory function
-
     const card = $(`.kanban-card[data-filename="${filename}"]`).closest('li');
     const column = card.closest('.kanban-column-ul');
-
     // Move card to the top of the column
     card.prependTo(column);
-
     // Update the order of all items in the column
     column.children().each(function (index) {
         const filename = $(this).data('filename');
@@ -2993,11 +2632,8 @@ function moveToTop(event, filename) {
     });
 }
 ```
-
 ### Update the onEnd Function in Sortable Initialization
-
 Ensure the `onEnd` function updates the order correctly after dragging:
-
 ```javascript
 onEnd: function (evt) {
     isDragging = false;
@@ -3006,7 +2642,6 @@ onEnd: function (evt) {
     const newColumn = $(item).closest('.kanban-column-ul').data('column');
     const filename = $(item).data('filename');
     const newOrder = $(item).index(); // Get the new index/order
-
     // Update the order of all items in the column
     $(item).closest('.kanban-column-ul').children().each(function (index) {
         const filename = $(this).data('filename');
@@ -3014,11 +2649,8 @@ onEnd: function (evt) {
     });
 }
 ```
-
 ### Final Script Update
-
 Ensure the whole script is properly wrapped and ready for execution:
-
 ```javascript
 $(document).ready(function () {
     loadStories();
@@ -3026,7 +2658,6 @@ $(document).ready(function () {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -3044,7 +2675,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -3053,7 +2683,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -3064,7 +2693,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -3074,7 +2702,6 @@ $(document).ready(function () {
             console.error('Could not copy text: ', err);
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('drag', function (event) {
         if (lastMouseY === event.clientY) return;
@@ -3083,13 +2710,11 @@ $(document).ready(function () {
     });
 });
 ```
-
 By following these steps, you will add a button that appears when hovering over a card, and clicking this button will move the card to the top of its column.
 ------------------------------------------------------------
 i want to move the color definition into settings php and have it added to the javascript from index.php
 ------------------------------------------------------------
 To move the color definitions into `settings.php` and dynamically add them to the JavaScript in `index.php`, you can follow these steps:
-
 1. **Define color options in `settings.php`:**
     ```php
     <?php
@@ -3097,7 +2722,6 @@ To move the color definitions into `settings.php` and dynamically add them to th
         ['username' => 'Admin', 'password' => '$2y$10$kMdhKRcawdXC9JhayVRhS.mZ/T5Va7K1wfck7FcM6uff1BGfd1qym'],
         ['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
     ];
-
     $colorOptions = [
               ['background' => '#F28B82', 'text' => '#000000'],
               ['background' => '#FBBC04', 'text' => '#000000'],
@@ -3112,13 +2736,11 @@ To move the color definitions into `settings.php` and dynamically add them to th
           ];
     ?>
     ```
-
 2. **Pass the color options to `index.php`:**
     ```php
     <?php
     session_start();
     include_once 'settings.php';
-
     if (empty($_SESSION['user'])) {
         header('Location: login.php');
         exit();
@@ -3153,7 +2775,6 @@ To move the color definitions into `settings.php` and dynamically add them to th
     <body>
     <!-- The rest of the HTML content -->
     ```
-
 3. **Modify your JavaScript in `custom.js` to use the `colorOptions` variable:**
     ```javascript
     $(document).ready(function () {
@@ -3169,10 +2790,8 @@ To move the color definitions into `settings.php` and dynamically add them to th
             });
             colorPalette.append(button);
         });
-
         // Set default color
         $('#colorPalette button').first().click();
-
         // The rest of your jQuery ready function
         loadStories();
         $('#storyForm').on('submit', function (e) {
@@ -3231,16 +2850,13 @@ To move the color definitions into `settings.php` and dynamically add them to th
         });
     });
     ```
-
 By doing this, you will have moved the color definitions into `settings.php` and dynamically passed them to your JavaScript code in `index.php`. This approach keeps your settings centralized and allows you to easily modify the color options in one place.
 ------------------------------------------------------------
 Allow user to change default 4 columns and titles in from settings.php
 ------------------------------------------------------------
 To allow users to change the default four columns and their titles from the `settings.php` file, you'll need to update both the `settings.php` file and your main HTML/PHP file to dynamically generate the columns based on the settings. Here is how you can do it:
-
 ### Update `settings.php`
 First, add the configuration for columns in `settings.php`.
-
 ```php
 <?php
 // json string for users, Admin password is 123456
@@ -3248,7 +2864,6 @@ $users = [
     ['username' => 'Admin', 'password' => '$2y$10$kMdhKRcawdXC9JhayVRhS.mZ/T5Va7K1wfck7FcM6uff1BGfd1qym'],
     ['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
 ];
-
 // Define default columns
 $columns = [
     ['id' => 'to-do', 'title' => 'To-Do'],
@@ -3258,10 +2873,8 @@ $columns = [
 ];
 ?>
 ```
-
 ### Update Main HTML/PHP File
 Modify your main HTML/PHP file to read these settings and generate the Kanban columns dynamically.
-
 ```php
 <?php
 session_start();
@@ -3326,7 +2939,6 @@ if (empty($_SESSION['user'])) {
             <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
         </div>
     </div>
-
     <!-- Modal for Adding/Editing Stories -->
     <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -3364,7 +2976,6 @@ if (empty($_SESSION['user'])) {
             </div>
         </div>
     </div>
-
     <!-- Modal for Adding User -->
     <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -3405,19 +3016,15 @@ if (empty($_SESSION['user'])) {
 </body>
 </html>
 ```
-
 ### Update `custom.js`
 Ensure your `custom.js` script still works correctly by referring to the dynamically created columns.
-
 ```javascript
 $(document).ready(function () {
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -3443,7 +3050,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -3454,7 +3060,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -3464,7 +3069,6 @@ $(document).ready(function () {
             console.error('Could not copy text: ', err);
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('drag', function (event) {
         if (lastMouseY === event.clientY) return;
@@ -3473,29 +3077,21 @@ $(document).ready(function () {
     });
 });
 ```
-
 With these changes, the Kanban columns are now dynamically generated based on the settings defined in `settings.php`, and users can change the default columns and titles easily by modifying the `settings.php` file.
 ------------------------------------------------------------
 I added a check in load_stories.php so if a column doesnt exist add the story to the first column
 ------------------------------------------------------------
 allow user to define where to read/write stories from in settings part of the code.
-
 I wrote this myself and I guess the time using chatgpt would have been a few minutes faster. I'm sorry for the delay.
 ------------------------------------------------------------
 use existing users for Owner dropdown instead of Edit
 ------------------------------------------------------------
 To use existing users for the "Owner" dropdown instead of allowing manual entry, you'll need to modify the HTML form for adding/editing stories and update the JavaScript accordingly. Here are the steps to achieve this:
-
 1. **Update the HTML form**: Replace the text input for the story owner with a dropdown select that is dynamically populated with existing users.
-
 2. **Modify the JavaScript**: Ensure the owner dropdown is populated with users from the `$users` array.
-
 Here's how you can update your code:
-
 ### Update the HTML Form
-
 Replace the text input for the story owner with a `select` dropdown in the modal form for adding/editing stories:
-
 ```html
 <!-- Modal for Adding/Editing Stories -->
 <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
@@ -3537,11 +3133,8 @@ Replace the text input for the story owner with a `select` dropdown in the modal
     </div>
 </div>
 ```
-
 ### Modify the JavaScript
-
 Add a script to populate the owner dropdown with existing users:
-
 ```javascript
 $(document).ready(function () {
     // Populate the owner dropdown with existing users
@@ -3550,7 +3143,6 @@ $(document).ready(function () {
     users.forEach(user => {
         storyOwnerSelect.append(new Option(user, user));
     });
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -3563,16 +3155,13 @@ $(document).ready(function () {
         });
         colorPalette.append(button);
     });
-
     // Set default color
     $('#colorPalette button').first().click();
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -3598,7 +3187,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -3609,7 +3197,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -3619,7 +3206,6 @@ $(document).ready(function () {
             console.error('Could not copy text: ', err);
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('drag', function (event) {
         if (lastMouseY === event.clientY) return;
@@ -3628,21 +3214,15 @@ $(document).ready(function () {
     });
 });
 ```
-
 ### Ensure CSRF token and other dependencies
-
 Make sure that the csrf token and other required dependencies are properly set in your script and HTML.
-
 This way, the owner dropdown will be populated with the list of existing users, making it easier to select an owner when adding or editing a story.
 ------------------------------------------------------------
 Allow a logged-in user to comment on a story. Show comments with user and timestamp, allow owner of comment to edit/delete their comments. The comment modal should be different from the story modal and the comment button should be visible on hover similar to the top button.
 ------------------------------------------------------------
 To allow a logged-in user to comment on a story, we will need to add a comment feature. This involves creating a new modal for adding and editing comments, updating the UI to show comments with user and timestamp, and adding backend support for saving, editing, and deleting comments. Here are the steps to achieve this:
-
 1. **Update the HTML for the comment modal:**
-
 Add a modal for adding and editing comments.
-
 ```html
 <!-- Modal for Adding/Editing Comments -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
@@ -3667,11 +3247,8 @@ Add a modal for adding and editing comments.
     </div>
 </div>
 ```
-
 2. **Update the story card to include a comments section and a button to add comments:**
-
 Modify the `createCard` function to include a comments section and a button to add comments.
-
 ```javascript
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
@@ -3689,7 +3266,6 @@ function createCard(story) {
             </div>
         </li>`;
 }
-
 function createCommentHtml(comment, storyOwner) {
     const commentTime = formatRelativeTime(comment.timestamp);
     const editDeleteButtons = comment.user === '<?php echo $_SESSION['user']; ?>' ? `
@@ -3704,11 +3280,8 @@ function createCommentHtml(comment, storyOwner) {
         </div>`;
 }
 ```
-
 3. **Add JavaScript functions to handle comments:**
-
 Add functions for showing the comment modal, saving comments, editing comments, and deleting comments.
-
 ```javascript
 function showCommentModal(event, storyFilename) {
     event.stopPropagation();
@@ -3718,7 +3291,6 @@ function showCommentModal(event, storyFilename) {
     $('#commentModalLabel').text('Add Comment');
     $('#commentModal').modal('show');
 }
-
 function editComment(event, commentId, storyFilename) {
     event.stopPropagation();
     const comment = $(`.comment[data-id="${commentId}"]`);
@@ -3729,7 +3301,6 @@ function editComment(event, commentId, storyFilename) {
     $('#commentModalLabel').text('Edit Comment');
     $('#commentModal').modal('show');
 }
-
 function deleteComment(event, commentId, storyFilename) {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this comment?')) {
@@ -3740,7 +3311,6 @@ function deleteComment(event, commentId, storyFilename) {
         }, 'json');
     }
 }
-
 function saveComment() {
     const commentData = {
         storyFilename: $('#commentStoryFilename').val(),
@@ -3762,39 +3332,31 @@ function saveComment() {
         }
     });
 }
-
 $(document).ready(function () {
     // Other initialization code...
-
     $('#commentForm').on('submit', function (e) {
         e.preventDefault();
         saveComment();
     });
 });
 ```
-
 4. **Add backend PHP scripts to handle saving, editing, and deleting comments:**
-
 Create `save_comment.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $commentId = $_POST['id'];
     $text = $_POST['text'];
     $user = $_POST['user'];
     $timestamp = date('Y-m-d H:i:s');
-
     $filePath = $cardsDir . '/' . $storyFilename;
     if (file_exists($filePath)) {
         $story = json_decode(file_get_contents($filePath), true);
         if (!isset($story['comments'])) {
             $story['comments'] = [];
         }
-
         if (empty($commentId)) {
             $commentId = uniqid();
             $story['comments'][] = [
@@ -3814,7 +3376,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $isNew = false;
         }
-
         file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT));
         echo json_encode([
             'id' => $commentId,
@@ -3828,17 +3389,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 ```
-
 Create `delete_comment.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $commentId = $_POST['id'];
-
     $filePath = $cardsDir . '/' . $storyFilename;
     if (file_exists($filePath)) {
         $story = json_decode(file_get_contents($filePath), true);
@@ -3853,22 +3410,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 ```
-
 5. **Update `save_story.php` and `load_stories.php` to handle comments:**
-
 Make sure to include the comments when saving and loading stories.
-
 Update `save_story.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 function create_slug($string) {
     $slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
     return $slug;
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'];
     $text = $_POST['text'];
@@ -3879,7 +3430,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $created = $lastUpdated = date('Y-m-d H:i:s');
     $column = 'to-do';
     $order = $_POST['order'] ?? 0;
-
     if (empty($filename)) {
         $filename = create_slug($title) . '_' . time() . '.json';
     } else {
@@ -3891,7 +3441,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $comments = $existingStory['comments'] ?? [];
         }
     }
-
     $story = [
         'column' => $column,
         'order' => $order,
@@ -3904,20 +3453,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'lastUpdated' => $lastUpdated,
         'comments' => $comments ?? [],
     ];
-
     file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
     $story['filename'] = $filename;
     echo json_encode($story);
 }
 ?>
 ```
-
 Update `load_stories.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 $stories = [];
 if (is_dir($cardsDir)) {
     $files = scandir($cardsDir);
@@ -3944,17 +3489,13 @@ if (is_dir($cardsDir)) {
 echo json_encode($stories);
 ?>
 ```
-
 This implementation allows users to comment on stories, and those comments are displayed with the user and timestamp. The owner of a comment can edit or delete their comments. The comment button is visible on hover similar to the top button.
 ------------------------------------------------------------
 show the createCommentHtml in the story popup instead of on the cards
 ------------------------------------------------------------
 To show the comments within the story modal instead of on the cards, you'll need to modify the `editStory` function to include the comments section in the modal and update the HTML structure of the modal to accommodate the comments. Here's how you can do it:
-
 1. **Update the story modal to include a comments section:**
-
 Modify the story modal HTML to include a section for displaying comments and a button to add new comments.
-
 ```html
 <!-- Modal for Adding/Editing Stories -->
 <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
@@ -4002,11 +3543,8 @@ Modify the story modal HTML to include a section for displaying comments and a b
     </div>
 </div>
 ```
-
 2. **Update the `editStory` function to load and display comments:**
-
 Modify the `editStory` function to populate the comments section within the modal.
-
 ```javascript
 function editStory(filename) {
     fetch(`${cardsDirName}/${filename}`)
@@ -4018,7 +3556,6 @@ function editStory(filename) {
             $('#storyOwner').val(story.owner);
             $('#storyBackgroundColor').val(story.backgroundColor);
             $('#storyTextColor').val(story.textColor);
-
             const commentsList = $('#commentsList');
             commentsList.empty(); // Clear existing comments
             if (story.comments) {
@@ -4026,12 +3563,10 @@ function editStory(filename) {
                     commentsList.append(createCommentHtml(comment, story.owner));
                 });
             }
-
             $('#storyModal').modal('show');
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 function createCommentHtml(comment, storyOwner) {
     const commentTime = formatRelativeTime(comment.timestamp);
     const editDeleteButtons = comment.user === '<?php echo $_SESSION['user']; ?>' ? `
@@ -4046,11 +3581,8 @@ function createCommentHtml(comment, storyOwner) {
         </div>`;
 }
 ```
-
 3. **Update the `saveComment` function to refresh the comments section after a comment is saved:**
-
 Modify the `saveComment` function to reload the comments section in the story modal after saving a comment.
-
 ```javascript
 function saveComment() {
     const commentData = {
@@ -4073,11 +3605,8 @@ function saveComment() {
     });
 }
 ```
-
 4. **Ensure the `showCommentModal` function sets the correct story filename:**
-
 Make sure the `showCommentModal` function works correctly within the context of the story modal.
-
 ```javascript
 function showCommentModal(event, storyFilename) {
     event.stopPropagation();
@@ -4088,11 +3617,8 @@ function showCommentModal(event, storyFilename) {
     $('#commentModal').modal('show');
 }
 ```
-
 5. **Update the backend scripts to handle comments:**
-
 Ensure your backend scripts (`save_comment.php` and `delete_comment.php`) are already in place as shown in the previous response. If not, create or update them accordingly.
-
 This setup ensures that comments are displayed within the story modal, allowing users to add, edit, and delete comments directly within the context of the story they belong to.
 ------------------------------------------------------------
 pretty good it addes $_SESSION to the javascript, but it could maybe be confused about the javascript being inline. I've added it as an extra variable to the script tag.
@@ -4100,11 +3626,8 @@ pretty good it addes $_SESSION to the javascript, but it could maybe be confused
 there is no comment.storyFilename
 ------------------------------------------------------------
 You're right. Since `comment.storyFilename` does not exist, we need to pass the story filename separately when creating or modifying comments. Let's adjust the implementation accordingly.
-
 1. **Update the `createCommentHtml` function to not require `storyOwner`:**
-
 You can simplify the `createCommentHtml` function to not rely on `storyOwner` and also ensure that the `editComment` and `deleteComment` functions receive the correct parameters.
-
 ```javascript
 function createCommentHtml(comment) {
     const commentTime = formatRelativeTime(comment.timestamp);
@@ -4120,11 +3643,8 @@ function createCommentHtml(comment) {
         </div>`;
 }
 ```
-
 2. **Modify the `editStory` function to pass the story filename correctly:**
-
 Ensure the comments are passed correctly to the modal and update the comments section.
-
 ```javascript
 function editStory(filename) {
     fetch(`${cardsDirName}/${filename}`)
@@ -4136,7 +3656,6 @@ function editStory(filename) {
             $('#storyOwner').val(story.owner);
             $('#storyBackgroundColor').val(story.backgroundColor);
             $('#storyTextColor').val(story.textColor);
-
             const commentsList = $('#commentsList');
             commentsList.empty(); // Clear existing comments
             if (story.comments) {
@@ -4145,17 +3664,13 @@ function editStory(filename) {
                     commentsList.append(createCommentHtml(comment));
                 });
             }
-
             $('#storyModal').modal('show');
         })
         .catch(error => console.error('Error loading story:', error));
 }
 ```
-
 3. **Update `saveComment` to correctly append or replace comments in the modal:**
-
 Ensure the comments section in the story modal gets updated correctly.
-
 ```javascript
 function saveComment() {
     const commentData = {
@@ -4179,11 +3694,8 @@ function saveComment() {
     });
 }
 ```
-
 4. **Ensure the `showCommentModal` and `editComment` functions handle parameters correctly:**
-
 Modify the `showCommentModal` and `editComment` functions to work correctly within the story modal.
-
 ```javascript
 function showCommentModal(event, storyFilename) {
     event.stopPropagation();
@@ -4193,7 +3705,6 @@ function showCommentModal(event, storyFilename) {
     $('#commentModalLabel').text('Add Comment');
     $('#commentModal').modal('show');
 }
-
 function editComment(event, commentId, storyFilename) {
     event.stopPropagation();
     const comment = $(`.comment[data-id="${commentId}"]`);
@@ -4204,7 +3715,6 @@ function editComment(event, commentId, storyFilename) {
     $('#commentModalLabel').text('Edit Comment');
     $('#commentModal').modal('show');
 }
-
 function deleteComment(event, commentId, storyFilename) {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this comment?')) {
@@ -4216,31 +3726,24 @@ function deleteComment(event, commentId, storyFilename) {
     }
 }
 ```
-
 5. **Backend PHP scripts for saving and deleting comments:**
-
 Ensure the backend scripts handle the comments correctly. Here are the `save_comment.php` and `delete_comment.php` scripts:
-
 `save_comment.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $commentId = $_POST['id'];
     $text = $_POST['text'];
     $user = $_POST['user'];
     $timestamp = date('Y-m-d H:i:s');
-
     $filePath = $cardsDir . '/' . $storyFilename;
     if (file_exists($filePath)) {
         $story = json_decode(file_get_contents($filePath), true);
         if (!isset($story['comments'])) {
             $story['comments'] = [];
         }
-
         if (empty($commentId)) {
             $commentId = uniqid();
             $story['comments'][] = [
@@ -4260,7 +3763,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $isNew = false;
         }
-
         file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT));
         echo json_encode([
             'id' => $commentId,
@@ -4274,17 +3776,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 ```
-
 `delete_comment.php`:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $commentId = $_POST['id'];
-
     $filePath = $cardsDir . '/' . $storyFilename;
     if (file_exists($filePath)) {
         $story = json_decode(file_get_contents($filePath), true);
@@ -4299,7 +3797,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 ```
-
 With these changes, comments will now be displayed within the story modal, allowing users to add, edit, and delete comments directly within the context of the story they belong to.
 ------------------------------------------------------------
 <?php include_once 'settings.php'; if ($_SERVER['REQUEST_METHOD'] === 'POST') { $storyFilename = $_POST['storyFilename']; $commentId = $_POST['id']; $filePath = $cardsDir . '/' . $storyFilename; if (file_exists($filePath)) { $story = json_decode(file_get_contents($filePath), true); if (isset($story['comments'])) { $story['comments'] = array_filter($story['comments'], function ($comment) use ($commentId) { return $comment['id'] !== $commentId; }); file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT)); echo json_encode(['success' => true]); } } }
@@ -4308,21 +3805,16 @@ this code changes the json to look like
 i dont want the comments to become sub arrays
 ------------------------------------------------------------
 The problem in the provided code is that the `array_filter` function preserves the keys of the array, which causes the JSON output to retain those keys as associative array indices instead of re-indexing them numerically.
-
 To ensure that the `comments` array is re-indexed numerically after filtering, you can use the `array_values` function. Here is the corrected code:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $commentId = $_POST['id'];
     $filePath = $cardsDir . '/' . $storyFilename;
-
     if (file_exists($filePath)) {
         $story = json_decode(file_get_contents($filePath), true);
-
         if (isset($story['comments'])) {
             $story['comments'] = array_values(array_filter($story['comments'], function ($comment) use ($commentId) {
                 return $comment['id'] !== $commentId;
@@ -4333,13 +3825,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ```
-
 Explanation:
 1. `array_filter` is used to filter out the comment with the specified `commentId`.
 2. `array_values` re-indexes the filtered array to ensure the keys are sequentially numbered from 0.
-
 This will ensure that the `comments` array remains numerically indexed, and the resulting JSON should look like this:
-
 ```json
 {
     "column": "to-do",
@@ -4367,7 +3856,6 @@ This will ensure that the `comments` array remains numerically indexed, and the 
     ]
 }
 ```
-
 This ensures the `comments` array is correctly formatted as a JSON array.
 ------------------------------------------------------------
 There were a few other bugs but still pretty good
@@ -4375,7 +3863,6 @@ There were a few other bugs but still pretty good
 Make the story text limit to words with less length than 128 characters or if no spaces found then limit to 128 characters.
 ------------------------------------------------------------
 To implement the functionality to limit the story text to words with a total length of less than 128 characters or to truncate it to 128 characters if no spaces are found, you can update the `createCard` function. Here is the modified `createCard` function with the necessary changes:
-
 ```javascript
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
@@ -4387,7 +3874,6 @@ function createCard(story) {
     if (numComments > 0) {
         numCommentsText = numComments === 1 ? '1 Comment <br>' : `${numComments} Comments <br>`;
     }
-
     // Limit story text to words with less length than 128 characters or truncate to 128 characters if no spaces are found
     let truncatedText;
     if (story.text.length > 128) {
@@ -4405,7 +3891,6 @@ function createCard(story) {
     } else {
         truncatedText = story.text;
     }
-
     return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;">
         <div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
             <button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
@@ -4416,21 +3901,15 @@ function createCard(story) {
     </li>`;
 }
 ```
-
 This code ensures that the story text is limited to words that collectively are less than 128 characters long. If the total length exceeds 128 characters and no spaces are found, it truncates the text to 128 characters and appends an ellipsis (`...`) to indicate truncation.
 ------------------------------------------------------------
 add story should clear the form in the modal
 ------------------------------------------------------------
 To ensure that the story form in the modal is cleared every time you open the "Add Story" modal, you should reset the form fields and any other relevant elements when the modal is shown.
-
 You can achieve this by using the `show.bs.modal` event to intercept the modal show event and reset the form.
-
 Below is the updated code with the necessary changes:
-
 ### HTML
-
 First, ensure your modal has an `id` attribute (which it does in your code):
-
 ```html
 <!-- Modal for Adding/Editing Stories -->
 <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
@@ -4478,11 +3957,8 @@ First, ensure your modal has an `id` attribute (which it does in your code):
     </div>
 </div>
 ```
-
 ### JavaScript
-
 Add the following jQuery code to reset the form fields when the modal is shown:
-
 ```javascript
 $(document).ready(function () {
     // Populate the owner dropdown with existing users
@@ -4490,7 +3966,6 @@ $(document).ready(function () {
     users.forEach(user => {
         storyOwnerSelect.append(new Option(user, user));
     });
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -4503,29 +3978,23 @@ $(document).ready(function () {
         });
         colorPalette.append(button);
     });
-
     // Set default color
     $('#colorPalette button').first().click();
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     $('#commentForm').on('submit', function (e) {
         e.preventDefault();
         saveComment();
     });
-
     $('#storyModal').on('show.bs.modal', function () {
         $('#storyForm')[0].reset(); // Reset the form fields
         $('#storyFilename').val(''); // Clear the hidden input for the filename
         $('#commentsList').empty(); // Clear the comments list
         $('#colorPalette button').first().click(); // Reset the color selection to default
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -4543,7 +4012,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -4552,7 +4020,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -4563,7 +4030,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -4573,7 +4039,6 @@ $(document).ready(function () {
             console.error('Could not copy text: ', err);
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('drag', function (event) {
         if (lastMouseY === event.clientY) return;
@@ -4582,19 +4047,14 @@ $(document).ready(function () {
     });
 });
 ```
-
 By adding the `show.bs.modal` event handler, the form will be reset each time the modal is shown, ensuring that the form fields are cleared and the default color is selected.
 ------------------------------------------------------------
 this breaks the edit function
 ------------------------------------------------------------
 To ensure that the modal form is reset only when adding a new story, without affecting the edit functionality, we need to distinguish between the two scenarios. One way to achieve this is by using a flag or checking the presence of the `storyFilename` value. If the `storyFilename` input is empty, it indicates that we are adding a new story; otherwise, we are editing an existing story.
-
 Here's how you can adjust the code to handle both scenarios correctly:
-
 ### JavaScript
-
 Add the following jQuery code to reset the form fields only when the modal is used for adding a new story:
-
 ```javascript
 $(document).ready(function () {
     // Populate the owner dropdown with existing users
@@ -4602,7 +4062,6 @@ $(document).ready(function () {
     users.forEach(user => {
         storyOwnerSelect.append(new Option(user, user));
     });
-
     // Create color buttons
     const colorPalette = $('#colorPalette');
     colorOptions.forEach(option => {
@@ -4615,22 +4074,17 @@ $(document).ready(function () {
         });
         colorPalette.append(button);
     });
-
     // Set default color
     $('#colorPalette button').first().click();
-
     loadStories();
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
-
     $('#commentForm').on('submit', function (e) {
         e.preventDefault();
         saveComment();
     });
-
     $('#storyModal').on('show.bs.modal', function () {
         if (!$('#storyFilename').val()) {
             $('#storyForm')[0].reset(); // Reset the form fields
@@ -4638,7 +4092,6 @@ $(document).ready(function () {
             $('#colorPalette button').removeClass('active').first().click(); // Reset the color selection to default
         }
     });
-
     // Initialize Sortable for each kanban column
     $('.kanban-column-ul').each(function () {
         new Sortable(this, {
@@ -4656,7 +4109,6 @@ $(document).ready(function () {
                 const newColumn = $(item).closest('.kanban-column-ul').data('column');
                 const filename = $(item).data('filename');
                 const newOrder = $(item).index(); // Get the new index/order
-
                 // Update the order of all items in the column
                 $(item).closest('.kanban-column-ul').children().each(function (index) {
                     const filename = $(this).data('filename');
@@ -4665,7 +4117,6 @@ $(document).ready(function () {
             }
         });
     });
-
     // Add User Modal
     $('#generateUser').on('click', function () {
         const userName = $('#userName').val().replace(/\s+/g, '').replace(/[^\w\-]/g, '');
@@ -4676,7 +4127,6 @@ $(document).ready(function () {
             });
         }
     });
-
     // Copy to clipboard
     $('#copyUserJson').on('click', function () {
         const textToCopy = $('#userJsonOutput').text();
@@ -4686,7 +4136,6 @@ $(document).ready(function () {
             console.error('Could not copy text: ', err);
         });
     });
-
     // Attach mousemove event to track mouse position
     document.addEventListener('drag', function (event) {
         if (lastMouseY === event.clientY) return;
@@ -4694,11 +4143,9 @@ $(document).ready(function () {
         autoScroll();
     });
 });
-
 function loadStories() {
     $.get('load_stories.php', function (data) {
         const stories = JSON.parse(data);
-
         // Group stories by column
         const groupedStories = stories.reduce((acc, story) => {
             if (!acc[story.column]) {
@@ -4707,12 +4154,10 @@ function loadStories() {
             acc[story.column].push(story);
             return acc;
         }, {});
-
         // Iterate through each column
         Object.keys(groupedStories).forEach(column => {
             // Sort stories by order within each column
             groupedStories[column].sort((a, b) => a.order - b.order);
-
             // Append sorted stories to the respective column
             groupedStories[column].forEach(story => {
                 const card = createCard(story);
@@ -4721,11 +4166,9 @@ function loadStories() {
         });
     });
 }
-
 function formatRelativeTime(dateTime) {
     return moment.utc(dateTime).local().fromNow();
 }
-
 function createCard(story) {
     const createdTime = formatRelativeTime(story.created);
     const updatedTime = formatRelativeTime(story.lastUpdated);
@@ -4734,7 +4177,6 @@ function createCard(story) {
     if (numComments > 0) {
         numCommentsText = numComments === 1 ? '1 Comment <br>' : `${numComments} Comments <br>`;
     }
-
     let truncatedText;
     if (story.text.length > 128) {
         const words = story.text.split(' ');
@@ -4751,7 +4193,6 @@ function createCard(story) {
     } else {
         truncatedText = story.text;
     }
-
     return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;">
                 <div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
                     <button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
@@ -4761,7 +4202,6 @@ function createCard(story) {
                 </div>
             </li>`;
 }
-
 function createCommentHtml(comment) {
     const commentTime = formatRelativeTime(comment.timestamp);
     const editDeleteButtons = comment.user === current_user ? ` <button class="btn btn-sm btn-warning" onclick="editComment(event, '${comment.id}', '${comment.storyFilename}')">Edit</button> <button class="btn btn-sm btn-danger" onclick="deleteComment(event, '${comment.id}', '${comment.storyFilename}')">Delete</button> ` : '';
@@ -4771,7 +4211,6 @@ function createCommentHtml(comment) {
                 ${editDeleteButtons}
             </div>`;
 }
-
 function showCommentModal(event, storyFilename) {
     event.stopPropagation();
     $('#commentStoryFilename').val(storyFilename);
@@ -4780,7 +4219,6 @@ function showCommentModal(event, storyFilename) {
     $('#commentModalLabel').text('Add Comment');
     $('#commentModal').modal('show');
 }
-
 function editComment(event, commentId, storyFilename) {
     event.stopPropagation();
     const comment = $(`.comment[data-id="${commentId}"]`);
@@ -4791,7 +4229,6 @@ function editComment(event, commentId, storyFilename) {
     $('#commentModalLabel').text('Edit Comment');
     $('#commentModal').modal('show');
 }
-
 function deleteComment(event, commentId, storyFilename) {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this comment?')) {
@@ -4802,14 +4239,12 @@ function deleteComment(event, commentId, storyFilename) {
         }, 'json');
     }
 }
-
 function saveComment() {
     const commentData = {
         storyFilename: $('#commentStoryFilename').val(),
         id: $('#commentId').val(),
         text: $('#commentText').val(),
     };
-
     $.post('save_comment.php', commentData, function (response) {
         $('#commentModal').modal('hide');
         $('#commentForm')[0].reset();
@@ -4824,7 +4259,6 @@ function saveComment() {
         }
     });
 }
-
 function saveStory() {
     const formData = {
         filename: $('#storyFilename').val(),
@@ -4834,7 +4268,6 @@ function saveStory() {
         backgroundColor: $('#storyBackgroundColor').val(),
         textColor: $('#storyTextColor').val(),
     };
-
     $.post('save_story.php', formData, function (response) {
         $('#storyModal').modal('hide');
         $('#storyForm')[0].reset();
@@ -4849,7 +4282,6 @@ function saveStory() {
         }
     });
 }
-
 function editStory(filename) {
     fetch(`${cardsDirName}/${filename}`)
         .then(response => response.json())
@@ -4872,21 +4304,18 @@ function editStory(filename) {
         })
         .catch(error => console.error('Error loading story:', error));
 }
-
 function updateStoryColumn(filename, newColumn, newOrder) {
     $.post('update_story_column.php', { filename: filename, column: newColumn, order: newOrder }, function (response) {
         const story = JSON.parse(response);
         console.log(story);
     });
 }
-
 function autoScroll() {
     if (!isDragging) return;
     clearTimeout(scrollTimeout);
     const scrollSensitivity = 60; // Distance from the edge of the viewport to start scrolling
     const scrollSpeed = 200; // Speed at which the page scrolls
     const viewportHeight = window.innerHeight;
-
     if (lastMouseY < scrollSensitivity) {
         // Scroll up
         window.scrollBy(0, -scrollSpeed);
@@ -4897,27 +4326,22 @@ function autoScroll() {
         scrollTimeout = setTimeout(() => { autoScroll(); }, 100);
     }
 }
-
 function moveToTop(event, filename) {
     event.stopPropagation(); // Prevent triggering the editStory function
     const card = $(`.kanban-card[data-filename="${filename}"]`).closest('li');
     const column = card.closest('.kanban-column-ul');
-
     // Move card to the top of the column
     card.prependTo(column);
-
     // Update the order of all items in the column
     column.children().each(function (index) {
         const filename = $(this).data('filename');
         updateStoryColumn(filename, column.data('column'), index);
     });
 }
-
 let isDragging = false;
 let lastMouseY = 0;
 let scrollTimeout = null;
 ```
-
 In the `show.bs.modal` event handler, it now checks if `#storyFilename` has a value. If it does not, the form is reset, indicating that it is a new story. If there is a value, it means the form is being used to edit an existing story, and it should not be reset. This way, both the add and edit functionalities will work correctly.
 ------------------------------------------------------------
 it hasnt figured out that the html invokes the modal and not the javascript, so neither solution works, better write myself or it will just keep trying the same thing in different ways
@@ -4925,13 +4349,9 @@ it hasnt figured out that the html invokes the modal and not the javascript, so 
 allow user to upload media or zip file to story. Show the files in the modal under the comments. Allow owners to delete the files they uploaded. Store reference to the files in the story.json
 ------------------------------------------------------------
 To enable users to upload media or ZIP files to a story, you will need to make several modifications to your existing code. This includes updating the frontend to support file uploads, modifying the backend to handle file storage, and updating the story JSON structure to store file references.
-
 Here are the steps to achieve this:
-
 ### 1. Update `index.php` to include file upload input
-
 Add file input in the story modal and a section to display uploaded files:
-
 ```php
 <!-- Modal for Adding/Editing Stories -->
 <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
@@ -4988,11 +4408,8 @@ Add file input in the story modal and a section to display uploaded files:
   </div>
 </div>
 ```
-
 ### 2. Update JavaScript to handle file uploads
-
 Modify `custom.js` to handle file uploads and display:
-
 ```javascript
 function createFileHtml(file) {
     const deleteButton = file.owner === current_user ? `<button class="btn btn-sm btn-danger" onclick="deleteFile(event, '${file.filename}', '${file.storyFilename}')">Delete</button>` : '';
@@ -5003,7 +4420,6 @@ function createFileHtml(file) {
         </div>
     `;
 }
-
 function updateFilesList(story) {
     const filesList = $('#filesList');
     filesList.empty(); // Clear existing files
@@ -5014,7 +4430,6 @@ function updateFilesList(story) {
         });
     }
 }
-
 function saveStory() {
     const formData = new FormData();
     formData.append('filename', $('#storyFilename').val());
@@ -5023,12 +4438,10 @@ function saveStory() {
     formData.append('owner', $('#storyOwner').val());
     formData.append('backgroundColor', $('#storyBackgroundColor').val());
     formData.append('textColor', $('#storyTextColor').val());
-
     const files = $('#storyFiles')[0].files;
     for (let i = 0; i < files.length; i++) {
         formData.append('files[]', files[i]);
     }
-
     $.ajax({
         url: 'save_story.php',
         type: 'POST',
@@ -5051,7 +4464,6 @@ function saveStory() {
         }
     });
 }
-
 function deleteFile(event, filename, storyFilename) {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this file?')) {
@@ -5062,27 +4474,20 @@ function deleteFile(event, filename, storyFilename) {
         }, 'json');
     }
 }
-
 $(document).ready(function () {
     // Existing code...
-
     $('#storyForm').on('submit', function (e) {
         e.preventDefault();
         saveStory();
     });
 });
 ```
-
 ### 3. Backend changes for file upload and deletion
-
 #### `save_story.php`
-
 Update `save_story.php` to handle file uploads:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $filename = $_POST['filename'] ?? uniqid() . '.json';
     $title = $_POST['title'];
@@ -5090,7 +4495,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $owner = $_POST['owner'];
     $backgroundColor = $_POST['backgroundColor'];
     $textColor = $_POST['textColor'];
-
     $story = [
         'filename' => $filename,
         'title' => $title,
@@ -5101,19 +4505,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'comments' => [],
         'files' => []
     ];
-
     $storyDir = $cardsDir . '/' . $filename;
     if (!file_exists($storyDir)) {
         mkdir($storyDir, 0777, true);
     }
-
     $storyFile = $storyDir . '/story.json';
     if (file_exists($storyFile)) {
         $existingStory = json_decode(file_get_contents($storyFile), true);
         $story['comments'] = $existingStory['comments'];
         $story['files'] = $existingStory['files'];
     }
-
     if (!empty($_FILES['files']['name'][0])) {
         foreach ($_FILES['files']['name'] as $key => $file_name) {
             $file_tmp = $_FILES['files']['tmp_name'][$key];
@@ -5126,31 +4527,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-
     file_put_contents($storyFile, json_encode($story, JSON_PRETTY_PRINT));
-
     echo json_encode($story);
 }
 ```
-
 #### `delete_file.php`
-
 Create a new `delete_file.php` to handle file deletions:
-
 ```php
 <?php
 include_once 'settings.php';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $storyFilename = $_POST['storyFilename'];
     $filename = $_POST['filename'];
     $storyDir = $cardsDir . '/' . $storyFilename;
     $filePath = $storyDir . '/' . $filename;
-
     if (file_exists($filePath)) {
         unlink($filePath); // Delete the file
     }
-
     $storyFile = $storyDir . '/story.json';
     if (file_exists($storyFile)) {
         $story = json_decode(file_get_contents($storyFile), true);
@@ -5159,15 +4552,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         file_put_contents($storyFile, json_encode($story, JSON_PRETTY_PRINT));
     }
-
     echo json_encode(['success' => true]);
 }
 ```
-
 ### 4. Update `editStory` function to display files
-
 Modify `editStory` function in `custom.js` to display uploaded files:
-
 ```javascript
 function editStory(filename) {
     fetch(`${cardsDirName}/${filename}/story.json`)
@@ -5193,7 +4582,6 @@ function editStory(filename) {
         .catch(error => console.error('Error loading story:', error));
 }
 ```
-
 With these changes, users can now upload media or ZIP files when creating or editing a story. The uploaded files will be displayed under the comments section in the story modal, and owners can delete the files they uploaded.
 ------------------------------------------------------------
 works pretty good, but messed up save paths and other things, asking to fix will upend a lot of code so I'll fix myself
@@ -5201,47 +4589,33 @@ works pretty good, but messed up save paths and other things, asking to fix will
 if story has image files show thumbnail along with name and link
 ------------------------------------------------------------
 To display image thumbnails along with the name and link for story files, you'll need to update both the frontend HTML and JavaScript. The basic idea is to check if the file is an image and, if so, display a thumbnail instead of just a link.
-
 Here's how you can do this:
-
 1. **Update the `createFileHtml` Function:**
    Modify this function to show the thumbnail for image files. You can check the file extension to determine if the file is an image.
-
 2. **Update the `updateFilesList` Function:**
    Ensure it calls the updated `createFileHtml` function correctly.
-
 3. **Ensure the `saveStory` Function Updates the UI:**
    After saving the story, the function should update the files list.
-
 Here's the updated code:
-
 ### Updated `createFileHtml` Function
-
 ```javascript
 function createFileHtml(file) {
     const isImage = /\.(jpg|jpeg|png|gif)$/i.test(file.filename);
     const deleteButton = file.owner === current_user ? `<button class="btn btn-sm btn-danger" onclick="deleteFile(event, '${file.filename}', '${file.storyFilename}')">Delete</button>` : '';
     const fileLink = `${cardsDirName}/uploads/${file.filename}`;
-
     let fileHtml = `<div class="file mb-2" data-filename="${file.filename}">`;
-
     if (isImage) {
         fileHtml += `<a href="${fileLink}" target="_blank"><img src="${fileLink}" alt="${file.filename}" style="max-width: 100px; max-height: 100px; margin-right: 10px;"></a>`;
     }
-
     fileHtml += `<a href="${fileLink}" target="_blank">${file.filename}</a> ${deleteButton}</div>`;
-
     return fileHtml;
 }
 ```
-
 ### Updated `updateFilesList` Function
-
 ```javascript
 function updateFilesList(story, storyFilename) {
     const filesList = $('#filesList');
     filesList.empty(); // Clear existing files
-
     if (story.files) {
         story.files.forEach(file => {
             file.storyFilename = storyFilename;
@@ -5250,11 +4624,8 @@ function updateFilesList(story, storyFilename) {
     }
 }
 ```
-
 ### Ensure `saveStory` Updates the Files List
-
 Make sure the `saveStory` function updates the files list after saving the story:
-
 ```javascript
 function saveStory() {
     const formData = new FormData(document.getElementById('storyForm'));
@@ -5264,12 +4635,10 @@ function saveStory() {
     formData.append('owner', $('#storyOwner').val());
     formData.append('backgroundColor', $('#storyBackgroundColor').val());
     formData.append('textColor', $('#storyTextColor').val());
-
     let files = $('#storyFiles')[0].files;
     for (let i = 0; i < files.length; i++) {
         formData.append('files[]', files[i]);
     }
-
     $.ajax({
         url: 'save_story.php',
         type: 'POST',
@@ -5293,11 +4662,8 @@ function saveStory() {
     });
 }
 ```
-
 ### Adding File Input to Story Form
-
 Ensure that the story form includes a file input:
-
 ```html
 <form id="storyForm" enctype="multipart/form-data">
     <!-- other form fields -->
@@ -5308,16 +4674,13 @@ Ensure that the story form includes a file input:
     <button type="submit" class="btn btn-primary">Save Story</button>
 </form>
 ```
-
 By implementing these changes, you should be able to show image thumbnails along with the file names and links when stories have associated image files.
 ------------------------------------------------------------
 add a button and setting for dark/light mode.
 ------------------------------------------------------------
 To add a dark/light mode toggle to your existing project, you'll need to:
 1. Add a button in your HTML to toggle the mode.
-
 2. Update your CSS to support both dark and light modes.
-
 3. Add JavaScript to handle the mode switching and save the user's preference.
 Here's how you can do it step by step:
 ### Step 1: Add a Toggle Button in the HTML
@@ -5328,19 +4691,16 @@ Add a button in your header or somewhere prominent in your `index.php` to toggle
         <button id="modeToggleBtn" class="btn btn-secondary float-end">Toggle Dark Mode</button>
     </div>
 </header>
-
 ```
 ### Step 2: Update Your CSS
 Modify your `custom.css` to include styles for both dark and light modes. You can use CSS variables to make it easier to switch between modes.
 ```css
-
 :root {
 --background-color: #fff;
 --text-color: #000;
 --card-background: #fff;
 --column-background: #f4f4f4;
 --card-box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-
 }
 body.dark-mode {
 --background-color: #121212;
@@ -5348,25 +4708,21 @@ body.dark-mode {
 --card-background: #1e1e1e;
 --column-background: #333;
 --card-box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-
 }
 body {
 background-color: var(--background-color);
 color: var(--text-color);
-
 }
 .kanban-board {
 display: flex;
 justify-content: space-between;
 width: 100%;
-
 }
 .kanban-column {
 width: 23%;
 background: var(--column-background);
 padding: 15px;
 border-radius: 5px;
-
 }
 .kanban-card {
 background: var(--card-background);
@@ -5374,17 +4730,14 @@ padding: 10px;
 margin-bottom: 10px;
 border-radius: 5px;
 box-shadow: var(--card-box-shadow);
-
 }
 .kanban-column-ul {
 list-style-type: none;
 padding: 0;
 min-height: 100%;
-
 }
 .kanban-card {
 position: relative;
-
 }
 .kanban-card .move-to-top-btn {
 display: none;
@@ -5392,18 +4745,14 @@ position: absolute;
 top: 5px;
 right: 5px;
 z-index: 10;
-
 }
 .kanban-card:hover .move-to-top-btn {
 display: block;
-
 }
-
 ```
 ### Step 3: Add JavaScript to Handle Mode Switching
 Update your `custom.js` to handle the mode switching and save the user's preference in `localStorage`.
 ```javascript
-
 $(document).ready(function() {
 // Function to apply the theme
 function applyTheme(theme) {
@@ -5425,21 +4774,15 @@ $('#modeToggleBtn').on('click', function() {
     localStorage.setItem('theme', newTheme);
     applyTheme(newTheme);
 });
-
 });
-
 ```
 This setup will allow users to toggle between dark and light modes, and their preference will be saved in `localStorage` so that it persists across page reloads.
 ### Full `index.php` with Toggle Button
 Here's how the full `index.php` with the toggle button would look:
 ```php
-
 <?php include_once 'settings.php'; ?>
-
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -5466,19 +4809,14 @@ Here's how the full `index.php` with the toggle button would look:
     const users = <?php echo json_encode(array_column($users, 'username')); ?>;
     var current_user = "<?php echo $_SESSION['user']; ?>";
 </script>
-
 </head>
-
 <body>
-
 <header>
 <!-- Bootstrap Navbar or custom header content here -->
 <div class="container-fluid">
     <button id="modeToggleBtn" class="btn btn-secondary float-end">Toggle Dark Mode</button>
 </div>
-
 </header>
-
 <main class="py-4">
 <div class="container mt-2">
     <h1 style="margin:10px;" class="text-center"><img src="images/android-chrome-192x192.png" style="height: 64px;"> Git Kanban Board</h1>
@@ -5609,42 +4947,30 @@ Here's how the full `index.php` with the toggle button would look:
         </div>
     </div>
 </div>
-
 </main>
-
 <!-- jQuery and Bootstrap Bundle (includes Popper) -->
-
 <script src="js/jquery-3.7.0.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/moment.min.js"></script>
 <script src="js/sortable.min.js"></script>
-
 <!-- Your custom scripts -->
 <script src="js/custom.js"></script>
 </body>
-
 </html>
-
 ```
 Now you have a fully functional dark/light mode toggle in your Kanban board application.
 ------------------------------------------------------------
 Add new stories to the top of To Do column.
 ------------------------------------------------------------
 To ensure that new stories are added to the top of the "To Do" column, you need to modify the `saveStory` function in your `custom.js` file to prepend the new story to the "To Do" column instead of appending it. Additionally, you'll need to ensure that the order of the stories in the "To Do" column is updated correctly.
-
 Here's how you can do it:
-
 1. **Update `saveStory` function**:
 - Instead of appending the new story to the column, you'll prepend it.
 - After prepending the story, update the order of all items in the column.
-
 2. **Ensure the backend handles the new order correctly**:
 - Update the backend to handle the new order of stories when a new story is added.
-
 Here's the updated `saveStory` function:
-
 ```javascript
-
 function saveStory() {
  const formData = new FormData(document.getElementById('storyForm'));
  formData.append('filename', $('#storyFilename').val());
@@ -5675,7 +5001,6 @@ function saveStory() {
              // Prepend new story to the top of the To Do column (assuming "To Do" column has ID 'todo-column')
              const todoColumn = $('.kanban-column-ul[data-column="todo"]');
              todoColumn.prepend(createCard(story));
-
              // Update the order of all items in the "To Do" column
              todoColumn.children().each(function (index) {
                  const filename = $(this).data('filename');
@@ -5687,19 +5012,14 @@ function saveStory() {
  });
 }
 ```
-
 3. **Ensure the newly added story is placed in the correct column with the correct order**:
-
 ```php
-
 // In save_story.php, make sure you handle the order correctly
 // Example:
-
 if ($isNewStory) {
  // If it's a new story, set its column to 'todo' and order to 0 (top of the column)
  $newStory['column'] = 'todo';
  $newStory['order'] = 0;
-
  // Update the order of existing stories in the 'todo' column
  foreach ($existingStories as &$story) {
      if ($story['column'] === 'todo') {
@@ -5709,10 +5029,8 @@ if ($isNewStory) {
  unset($story); // Break the reference with the last element
 }
 ```
-
 4. **Reload the stories to reflect the changes**:
 - After saving the story and updating the order, you may want to reload the stories to ensure the UI reflects the latest state. This can be done by calling `loadStories()` after updating the order.
-
 ```javascript
 function saveStory() {
  const formData = new FormData(document.getElementById('storyForm'));
@@ -5744,7 +5062,6 @@ function saveStory() {
              // Prepend new story to the top of the To Do column (assuming "To Do" column has ID 'todo-column')
              const todoColumn = $('.kanban-column-ul[data-column="todo"]');
              todoColumn.prepend(createCard(story));
-
              // Update the order of all items in the "To Do" column
              todoColumn.children().each(function (index) {
                  const filename = $(this).data('filename');
@@ -5757,5 +5074,401 @@ function saveStory() {
  });
 }
 ```
-
 his approach ensures that new stories are added to the top of the "To Do" column and that the order of all stories within the column is updated correctly.
+------------------------------------------------------------
+in the edit modal, add a delete button with confirmation, delete the file if approved.
+------------------------------------------------------------
+To add a delete button with confirmation in the edit modal and delete the file if approved, you can make the following changes to your `index.php` and `custom.js` files.
+### 1. Update `index.php`
+Add the delete button inside the modal for adding/editing stories:
+```html
+<!-- Modal for Adding/Editing Stories -->
+<div class="modal modal-lg fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="storyForm" enctype="multipart/form-data">
+                    <input type="hidden" id="storyFilename">
+                    <div class="mb-3">
+                        <label for="storyTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="storyTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyText" class="form-label">Text</label>
+                        <textarea class="form-control" id="storyText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyOwner" class="form-label">Owner</label>
+                        <select class="form-control" id="storyOwner" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Background Color</label>
+                        <div id="colorPalette" class="d-flex flex-wrap">
+                            <!-- Color buttons will be inserted here dynamically -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="storyBackgroundColor">
+                    <input type="hidden" id="storyTextColor">
+                    <div class="mb-3">
+                        <label for="storyFiles" class="form-label">Upload Files</label>
+                        <input type="file" class="form-control" id="storyFiles" name="storyFiles[]" multiple>
+                    </div>
+                    <div id="save_result"></div>
+                    <button type="submit" class="btn btn-primary">Save Story</button>
+                    <button class="btn btn-secondary" id="showCommentModal">Add Comment</button>
+                    <button type="button" class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+                </form>
+                <div class="comments-section">
+                    <hr>
+                    <h5>Comments</h5>
+                    <div id="commentsList"></div>
+                </div>
+                <div class="files-section">
+                    <hr>
+                    <h5>Files</h5>
+                    <div id="filesList" class="row"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+### 2. Update `custom.js`
+Add the functionality for the delete button:
+```javascript
+// Function to delete a story
+function deleteStory() {
+    const filename = $('#storyFilename').val();
+    if (confirm('Are you sure you want to delete this story?')) {
+        $.post('delete_story.php', { filename: filename }, function(response) {
+            if (response.success) {
+                $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+                $('#storyModal').modal('hide');
+                $('#save_result').html('<div class="alert alert-success">Story deleted successfully!</div>');
+            } else {
+                $('#save_result').html('<div class="alert alert-danger">Failed to delete the story!</div>');
+            }
+        }, 'json');
+    }
+}
+$(document).ready(function () {
+    // ... existing code ...
+    // Attach click event to delete story button
+    $('#deleteStoryBtn').on('click', function (e) {
+        e.preventDefault();
+        deleteStory();
+    });
+    // ... existing code ...
+});
+```
+### 3. Create `delete_story.php`
+Create a new PHP file `delete_story.php` to handle the story deletion on the server side:
+```php
+<?php
+include_once 'settings.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename = $_POST['filename'];
+    $filePath = $cardsDir . '/' . $filename;
+    if (file_exists($filePath)) {
+        unlink($filePath); // Delete the story file
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'File not found']);
+    }
+}
+?>
+```
+With these changes, you will have a delete button in the story modal that allows users to delete a story with confirmation. The JavaScript will handle the UI updates, and the server-side PHP script will handle the actual file deletion.
+------------------------------------------------------------
+the php should also delete all attachments to the story
+------------------------------------------------------------
+To ensure that all attachments related to a story are deleted when the story itself is deleted, you'll need to update the `delete_story.php` file to handle the deletion of these attachments.
+Here's the updated approach:
+### 1. Update `delete_story.php`
+Modify the PHP script to delete the story file and any associated attachments:
+```php
+<?php
+include_once 'settings.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename = $_POST['filename'];
+    $filePath = $cardsDir . '/' . $filename;
+    if (file_exists($filePath)) {
+        // Load the story to get the list of attachments
+        $story = json_decode(file_get_contents($filePath), true);
+        // Delete attachments if they exist
+        if (!empty($story['files'])) {
+            foreach ($story['files'] as $file) {
+                $attachmentPath = $cardsDir . '/uploads/' . $file['filename'];
+                if (file_exists($attachmentPath)) {
+                    unlink($attachmentPath);
+                }
+            }
+        }
+        // Delete the story file itself
+        unlink($filePath);
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'File not found']);
+    }
+}
+?>
+```
+### 2. Ensure Attachments are Stored Correctly
+Ensure that attachments are stored in a consistent directory, as referenced in the script (`$cardsDir . '/uploads/'`).
+### 3. Update JavaScript (Optional)
+Ensure you handle the UI updates appropriately after the story is deleted:
+```javascript
+$(document).ready(function () {
+    // ... existing code ...
+    // Attach click event to delete story button
+    $('#deleteStoryBtn').on('click', function (e) {
+        e.preventDefault();
+        deleteStory();
+    });
+    // ... existing code ...
+});
+// Function to delete a story
+function deleteStory() {
+    const filename = $('#storyFilename').val();
+    if (confirm('Are you sure you want to delete this story?')) {
+        $.post('delete_story.php', { filename: filename }, function(response) {
+            if (response.success) {
+                $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+                $('#storyModal').modal('hide');
+                $('#save_result').html('<div class="alert alert-success">Story deleted successfully!</div>');
+            } else {
+                $('#save_result').html('<div class="alert alert-danger">Failed to delete the story: ' + response.message + '</div>');
+            }
+        }, 'json');
+    }
+}
+```
+### Summary
+1. Modified `delete_story.php` to delete both the story and its associated attachment files.
+2. Ensured JavaScript updates the UI appropriately upon successful deletion.
+This ensures that when a story is deleted, all its associated attachments are also removed from the server, keeping the file system clean and organized.
+------------------------------------------------------------
+use bootstrap modal for confirmation
+------------------------------------------------------------
+To use a Bootstrap modal for the confirmation of story deletion, you can add a confirmation modal to your `index.php` file and then handle its display and actions using JavaScript. Here's how you can do it:
+### 1. Update `index.php`
+Add a confirmation modal for story deletion:
+```html
+<!-- Modal for Adding/Editing Stories -->
+<div class="modal modal-lg fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="storyForm" enctype="multipart/form-data">
+                    <input type="hidden" id="storyFilename">
+                    <div class="mb-3">
+                        <label for="storyTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="storyTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyText" class="form-label">Text</label>
+                        <textarea class="form-control" id="storyText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storyOwner" class="form-label">Owner</label>
+                        <select class="form-control" id="storyOwner" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Background Color</label>
+                        <div id="colorPalette" class="d-flex flex-wrap">
+                            <!-- Color buttons will be inserted here dynamically -->
+                        </div>
+                    </div>
+                    <input type="hidden" id="storyBackgroundColor">
+                    <input type="hidden" id="storyTextColor">
+                    <div class="mb-3">
+                        <label for="storyFiles" class="form-label">Upload Files</label>
+                        <input type="file" class="form-control" id="storyFiles" name="storyFiles[]" multiple>
+                    </div>
+                    <div id="save_result"></div>
+                    <button type="submit" class="btn btn-primary">Save Story</button>
+                    <button class="btn btn-secondary" id="showCommentModal">Add Comment</button>
+                    <button type="button" class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+                </form>
+                <div class="comments-section">
+                    <hr>
+                    <h5>Comments</h5>
+                    <div id="commentsList"></div>
+                </div>
+                <div class="files-section">
+                    <hr>
+                    <h5>Files</h5>
+                    <div id="filesList" class="row"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Confirmation Modal for Deleting Story -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this story? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+### 2. Update `custom.js`
+Modify the JavaScript to handle the confirmation modal:
+```javascript
+$(document).ready(function () {
+    // ... existing code ...
+    // Attach click event to delete story button
+    $('#deleteStoryBtn').on('click', function (e) {
+        e.preventDefault();
+        $('#deleteConfirmationModal').modal('show');
+    });
+    // Attach click event to confirm delete button in the confirmation modal
+    $('#confirmDeleteBtn').on('click', function (e) {
+        e.preventDefault();
+        deleteStory();
+    });
+    // ... existing code ...
+});
+// Function to delete a story
+function deleteStory() {
+    const filename = $('#storyFilename').val();
+    $.post('delete_story.php', { filename: filename }, function(response) {
+        if (response.success) {
+            $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+            $('#storyModal').modal('hide');
+            $('#deleteConfirmationModal').modal('hide');
+            $('#save_result').html('<div class="alert alert-success">Story deleted successfully!</div>');
+        } else {
+            $('#save_result').html('<div class="alert alert-danger">Failed to delete the story: ' + response.message + '</div>');
+        }
+    }, 'json');
+}
+```
+### 3. Ensure PHP Script Deletes Attachments
+Ensure the PHP script for deleting stories (`delete_story.php`) also deletes all associated attachments:
+```php
+<?php
+include_once 'settings.php';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename = $_POST['filename'];
+    $filePath = $cardsDir . '/' . $filename;
+    if (file_exists($filePath)) {
+        // Load the story to get the list of attachments
+        $story = json_decode(file_get_contents($filePath), true);
+        // Delete attachments if they exist
+        if (!empty($story['files'])) {
+            foreach ($story['files'] as $file) {
+                $attachmentPath = $cardsDir . '/uploads/' . $file['filename'];
+                if (file_exists($attachmentPath)) {
+                    unlink($attachmentPath);
+                }
+            }
+        }
+        // Delete the story file itself
+        unlink($filePath);
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'File not found']);
+    }
+}
+?>
+```
+### Summary
+1. Added a confirmation modal to `index.php` for story deletion.
+2. Updated `custom.js` to handle showing the confirmation modal and deleting the story upon confirmation.
+3. Ensured `delete_story.php` deletes both the story and its associated attachments.
+This ensures a user-friendly and safe way of deleting stories with confirmation using Bootstrap modals.
+------------------------------------------------------------
+when opening a modal on top of an existing modal, the first modal doesnt fade out, but the document background fades out more. how to fix it
+------------------------------------------------------------
+When you open a modal on top of an existing modal, the background fades more due to overlapping backdrops. To fix this issue, you can manage the z-index of the modals and their backdrops properly.
+
+Here's how you can achieve this:
+
+### 1. Update `custom.js`
+You need to handle the z-index of the modals dynamically. Bootstrap provides events that are triggered when modals are shown or hidden, and you can use these events to adjust the z-index of the modals and their backdrops.
+
+Add the following code to your `custom.js` to manage the z-index:
+
+```javascript
+$(document).ready(function () {
+    // ... existing code ...
+
+    // Manage z-index for multiple modals
+    $('.modal').on('show.bs.modal', function () {
+        const zIndex = 1040 + (10 * $('.modal:visible').length);
+        $(this).css('z-index', zIndex);
+        setTimeout(function () {
+            $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
+    });
+
+    $('.modal').on('hidden.bs.modal', function () {
+        if ($('.modal:visible').length) {
+            // Adjust the backdrop z-index when closing a modal
+            $('body').addClass('modal-open');
+        }
+    });
+
+    // Attach click event to delete story button
+    $('#deleteStoryBtn').on('click', function (e) {
+        e.preventDefault();
+        $('#deleteConfirmationModal').modal('show');
+    });
+
+    // Attach click event to confirm delete button in the confirmation modal
+    $('#confirmDeleteBtn').on('click', function (e) {
+        e.preventDefault();
+        deleteStory();
+    });
+
+    // ... existing code ...
+});
+
+// Function to delete a story
+function deleteStory() {
+    const filename = $('#storyFilename').val();
+    $.post('delete_story.php', { filename: filename }, function(response) {
+        if (response.success) {
+            $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+            $('#storyModal').modal('hide');
+            $('#deleteConfirmationModal').modal('hide');
+            $('#save_result').html('<div class="alert alert-success">Story deleted successfully!</div>');
+        } else {
+            $('#save_result').html('<div class="alert alert-danger">Failed to delete the story: ' + response.message + '</div>');
+        }
+    }, 'json');
+}
+```
+
+### Explanation
+- The `show.bs.modal` event is triggered when a modal is about to be shown. We calculate the new z-index for the modal and its backdrop based on the number of currently visible modals.
+- The `hidden.bs.modal` event is triggered when a modal is completely hidden. We re-add the `modal-open` class to the body if there are other visible modals, ensuring the backdrop remains correctly styled.
+
+### Summary
+This code dynamically adjusts the z-index of modals and their backdrops, ensuring that each modal appears correctly on top of the previous one, and the background doesn't become overly faded.
+
+By managing the z-index properly, you can ensure a seamless user experience when dealing with multiple modals in Bootstrap.

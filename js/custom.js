@@ -168,7 +168,7 @@ function saveStory() {
 				existingCard.replaceWith(createCard(story));
 			} else {
 				console.log('New story:', story);
-				const insertColumn = $('.kanban-column-ul[data-column="'+defaultColumn+'"]');
+				const insertColumn = $('.kanban-column-ul[data-column="' + defaultColumn + '"]');
 				insertColumn.prepend(createCard(story));
 				
 				insertColumn.children().each(function (index) {
@@ -176,9 +176,9 @@ function saveStory() {
 					updateStoryColumn(filename, defaultColumn, index);
 				});
 				//scroll to top of document
-				setTimeout(function() {
+				setTimeout(function () {
 					$("#storyModal").modal('hide');
-				},400);
+				}, 400);
 				
 				$('html, body').animate({scrollTop: 0}, 200);
 			}
@@ -198,7 +198,6 @@ function deleteFile(event, filename, storyFilename) {
 	}
 }
 
-
 function editStory(filename) {
 	fetch(`${cardsDirName}/${filename}`)
 		.then(response => response.json())
@@ -210,6 +209,9 @@ function editStory(filename) {
 			$('#storyOwner').val(story.owner);
 			$('#storyBackgroundColor').val(story.backgroundColor);
 			$('#storyTextColor').val(story.textColor);
+			$('#storyFiles').val('');
+			
+			$('#showCommentModal').show();
 			
 			const commentsList = $('#commentsList');
 			commentsList.empty(); // Clear existing comments
@@ -226,6 +228,30 @@ function editStory(filename) {
 			$('#storyModal').modal('show');
 		})
 		.catch(error => console.error('Error loading story:', error));
+}
+
+function addStory() {
+	$('#save_result').html('');
+	$('#storyFilename').val('');
+	$('#storyTitle').val('');
+	$('#storyText').val('');
+	$('#storyOwner').val('');
+	$('#storyFiles').val('');
+	
+	const commentsList = $('#commentsList');
+	commentsList.empty(); // Clear existing comments
+	$('.comments-section').hide();
+	
+	const filesList = $('#filesList');
+	filesList.empty(); // Clear existing files
+	$('.files-section').hide();
+	
+	$('#colorPalette button').removeClass('active').first().click(); // Reset the color selection to default
+	
+	//hide the add comment button
+	$('#showCommentModal').hide();
+	
+	$('#storyModal').modal('show');
 }
 
 function updateStoryColumn(filename, newColumn, newOrder) {
@@ -264,7 +290,6 @@ function updateFilesList(story, storyFilename) {
 		});
 	}
 }
-
 
 function autoScroll() {
 	if (!isDragging) return;
@@ -317,7 +342,23 @@ function applyTheme(theme) {
 	}
 }
 
+function deleteStory() {
+	const filename = $('#storyFilename').val();
+	$.post('delete_story.php', {filename: filename}, function (response) {
+		if (response.success) {
+			$(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+			$('#storyModal').modal('hide');
+			$('#deleteConfirmationModal').modal('hide');
+			$('#save_result').html('<div class="alert alert-success">Story deleted successfully!</div>');
+		} else {
+			$('#save_result').html('<div class="alert alert-danger">Failed to delete the story: ' + response.message + '</div>');
+		}
+	}, 'json');
+}
 
+
+//----------------------------------------------------
+//----------------- Global Variables -----------------
 
 let isDragging = false;
 let lastMouseY = 0;
@@ -325,16 +366,19 @@ let scrollTimeout = null;
 let savedTheme = localStorage.getItem('theme') || 'light';
 
 
+//----------------------------------------------------
+//----------------- Event Listeners ------------------
+
 $(document).ready(function () {
 	// Populate the owner dropdown with existing users
 	const storyOwnerSelect = $('#storyOwner');
 	users.forEach(user => {
 		storyOwnerSelect.append(new Option(user, user));
 	});
-
+	
 	applyTheme(savedTheme);
 	
-	$('#modeToggleBtn').on('click', function() {
+	$('#modeToggleBtn').on('click', function () {
 		const currentTheme = $('body').hasClass('dark-mode') ? 'dark' : 'light';
 		const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 		localStorage.setItem('theme', newTheme);
@@ -358,6 +402,17 @@ $(document).ready(function () {
 	
 	loadStories();
 	
+	$('#deleteStoryBtn').on('click', function (e) {
+		e.preventDefault();
+		$('#deleteConfirmationModal').modal('show');
+	});
+	
+	// Attach click event to confirm delete button in the confirmation modal
+	$('#confirmDeleteBtn').on('click', function (e) {
+		e.preventDefault();
+		deleteStory();
+	});
+	
 	$('#storyForm').on('submit', function (e) {
 		e.preventDefault();
 		saveStory();
@@ -373,12 +428,9 @@ $(document).ready(function () {
 		saveComment();
 	});
 	
-	$('#addStoryBtn').on('click', function () {
-		$('#save_result').html('');
-		$('#storyForm')[0].reset(); // Reset the form fields
-		$('#commentsList').empty(); // Clear the comments list
-		$('#colorPalette button').removeClass('active').first().click(); // Reset the color selection to default
-		$('#storyModal').modal('show');
+	$('#addStoryBtn').on('click', function (e) {
+		e.preventDefault();
+		addStory();
 	});
 	
 	$('#storyModal').on('shown.bs.modal', function () {
@@ -448,5 +500,21 @@ $(document).ready(function () {
 		autoScroll();
 	});
 	
+	
+	// Manage z-index for multiple modals
+	$('.modal').on('show.bs.modal', function () {
+		const zIndex = 1040 + (10 * $('.modal:visible').length);
+		$(this).css('z-index', zIndex);
+		setTimeout(function () {
+			$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+		}, 0);
+	});
+	
+	$('.modal').on('hidden.bs.modal', function () {
+		if ($('.modal:visible').length) {
+			// Adjust the backdrop z-index when closing a modal
+			$('body').addClass('modal-open');
+		}
+	});
 	
 });

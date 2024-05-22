@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "1",
+    "order": "2",
     "title": "Project Folder in Settings",
     "text": "allow user to define where to read\/write stories from in settings part of the code.",
     "owner": "Ekim",

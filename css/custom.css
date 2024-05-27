@@ -85,8 +85,8 @@ body {
 .kanban-card .archive-btn {
     display: none;
     position: absolute;
-    top: 5px;
-    right: 55px;
+    bottom: 5px;
+    right: 5px;
     z-index: 10;
 }
 

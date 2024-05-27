@@ -23,12 +23,14 @@
 					'user' => $user,
 					'timestamp' => $timestamp,
 				];
+				$story = log_history($story, 'Added comment', $user);
 				$isNew = true;
 			} else {
 				foreach ($story['comments'] as &$comment) {
 					if ($comment['id'] === $commentId) {
 						$comment['text'] = $text;
 						$comment['timestamp'] = $timestamp;
+						$story = log_history($story, 'Edited comment', $user);
 						break;
 					}
 				}

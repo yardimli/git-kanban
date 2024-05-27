@@ -10,7 +10,7 @@
 			['username' => 'Ekim', 'password' => '$2y$10$DIbIGXf43w/583AeGtCtMuiGFJZvNn6CNqatLrYYqOzzDdgeu62Kq'],
 		];
 
-	$autoLoginUser = 'Admin'; //leave this empty if you want to allow all users to login
+	$autoLoginUser = ''; //leave this empty if you want to allow all users to login
 
 	$colorOptions = [
 		['background' => '#F28B82', 'text' => '#000000'],
@@ -61,4 +61,18 @@
 			header('Location: login.php');
 			exit();
 		}
+	}
+
+	function log_history($story, $action, $user) {
+		$story['history'][] = [
+			'action' => $action,
+			'user' => $user,
+			'timestamp' => date('Y-m-d H:i:s')
+		];
+		return $story;
+	}
+
+	function create_slug($string) {
+		$slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
+		return $slug;
 	}

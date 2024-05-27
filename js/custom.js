@@ -1,5 +1,8 @@
-function loadStories() {
-	$.get('load_stories.php', function (data) {
+function loadStories(showArchived = false) {
+	//empty the columns
+	$('.kanban-column-ul').empty();
+	
+	$.get('load_stories.php', { showArchived: showArchived }, function (data) {
 		const stories = JSON.parse(data);
 		
 		// Group stories by column
@@ -62,9 +65,17 @@ function createCard(story) {
 		truncatedText = story.text;
 	}
 	
+	const archiveButton = story.archived ?
+		`<button class="btn btn-sm btn-warning archive-btn" onclick="unarchiveStory(event, '${story.filename}')">Unarchive</button>` :
+		`<button class="btn btn-sm btn-secondary archive-btn" onclick="archiveStory(event, '${story.filename}')">Archive</button>`;
+	
+	const archivedLabel = story.archived ? '<span class="badge bg-secondary">Archived</span> ' : '';
+	
 	
 	return `<li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;"><div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
 				<button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
+			  ${archiveButton}
+				${archivedLabel}
         <h5>${story.title}</h5>
         <p>${truncatedText}</p>
         <p><strong>Owner:</strong> ${story.owner} <br>${numCommentsText}${numFilesText}<strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br><strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span></p>
@@ -356,6 +367,70 @@ function deleteStory() {
 	}, 'json');
 }
 
+function createHistoryHtml(history) {
+	const historyTime = formatRelativeTime(history.timestamp);
+	return `
+        <div class="history-entry mb-1">
+            ${moment.utc(history.timestamp).local().format('LLLL')} <strong>${history.user}</strong> ${history.action}
+        </div>`;
+}
+
+function showHistoryModal(event, storyFilename) {
+	event.stopPropagation();
+	fetch(`${cardsDirName}/${storyFilename}`)
+		.then(response => response.json())
+		.then(story => {
+			const historyList = $('#historyList');
+			historyList.empty(); // Clear existing history
+			if (story.history) {
+				story.history.forEach(entry => {
+					historyList.append(createHistoryHtml(entry));
+				});
+			}
+			$('#historyModal').modal('show');
+		})
+		.catch(error => console.error('Error loading history:', error));
+}
+
+function createAllHistoryHtml(history) {
+	const historyTime = formatRelativeTime(history.timestamp);
+	return `
+        <div class="history-entry mb-1">
+            ${moment.utc(history.timestamp).local().format('LLLL')} <strong>${history.title}</strong> <strong>${history.user}</strong> ${history.action}
+        </div>`;
+}
+
+function showAllHistoryModal() {
+	$.get('fetch_all_history.php', function (data) {
+		const histories = JSON.parse(data);
+		const allHistoryList = $('#allHistoryList');
+		allHistoryList.empty(); // Clear existing history
+		histories.forEach(entry => {
+			allHistoryList.append(createAllHistoryHtml(entry));
+		});
+		$('#allHistoryModal').modal('show');
+	});
+}
+
+function archiveStory(event, filename) {
+	event.stopPropagation();
+	$.post('archive_story.php', { filename: filename, archived: true }, function (response) {
+		if (response.success) {
+			$(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+		}
+	}, 'json');
+}
+
+function unarchiveStory(event, filename) {
+	event.stopPropagation();
+	$.post('archive_story.php', { filename: filename, archived: false }, function (response) {
+		if (response.success) {
+			loadStories(true);
+			// $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+		}
+	}, 'json');
+}
+
 
 //----------------------------------------------------
 //----------------- Global Variables -----------------
@@ -401,6 +476,24 @@ $(document).ready(function () {
 	$('#colorPalette button').first().click();
 	
 	loadStories();
+	
+	$('#toggleArchivedBtn').on('click', function (e) {
+		e.preventDefault();
+		const isShowingArchived = $(this).html() === '<i class="bi bi-archive"></i>';
+		$(this).html(isShowingArchived ? '<i class="bi bi-archive-fill"></i>' : '<i class="bi bi-archive"></i>');
+		loadStories(isShowingArchived);
+	});
+	
+	
+	$('#showAllHistoryBtn').on('click', function (e) {
+		e.preventDefault();
+		showAllHistoryModal();
+	});
+
+	$('#showHistoryModal').on('click', function (e) {
+		e.preventDefault();
+		showHistoryModal(e, $('#storyFilename').val());
+	});
 	
 	$('#deleteStoryBtn').on('click', function (e) {
 		e.preventDefault();

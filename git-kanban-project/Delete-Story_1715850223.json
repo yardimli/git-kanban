@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "0",
+    "order": "1",
     "title": "Delete Story",
     "text": "in the edit modal, add a delete button with confirmation, delete the file if approved.",
     "owner": "Ekim",

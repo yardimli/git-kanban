@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "6",
+    "order": "9",
     "title": "Comment on stories",
     "text": "Allow a logged-in user to comment on a story. Show comments with user and timestamp, allow owner of comment to edit\/delete their comments. The comment modal should be different from the story modal and the comment button should be visible on hover similar to the top button.",
     "owner": "Admin",

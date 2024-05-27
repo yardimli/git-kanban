@@ -35,9 +35,15 @@
 <body>
 <header>
 	<div class="container-fluid mt-2">
-		<button id="modeToggleBtn" class="btn btn-secondary float-end">
+		<button class="btn btn-info float-start me-2" id="showAllHistoryBtn" title="show all history"><i class="bi bi-clock-history"></i></button>
+		<button class="btn btn-secondary float-start me-2" data-bs-toggle="modal" data-bs-target="#addUserModal" title="add user modal"><i class="bi bi-person"></i></button>
+		<button class="btn btn-info float-start me-2" id="toggleArchivedBtn"><i class="bi bi-archive"></i></button>
+
+		<a href="logout.php" class="btn btn-danger  float-end ms-2" title="Log out"><i class="bi bi-door-open"></i></a>
+		<button id="modeToggleBtn" class="btn btn-secondary float-end ms-2">
 			<i id="modeIcon" class="bi bi-sun"></i>
 		</button>
+		<button class="btn btn-primary float-end ms-2" id="addStoryBtn" title="add new story"><i class="bi bi-plus-circle-fill"></i></button>
 	</div>
 </header>
 
@@ -50,10 +56,6 @@
 			<div class="my-3 d-inline-block">
 				Hello <?php echo $_SESSION['user']; ?>,
 			</div>
-			<div class="my-3 d-inline-block float-end">
-				<a href="logout.php" class="btn btn-danger">Log Out</a>
-				<button class="btn btn-primary" id="addStoryBtn">Add Story</button>
-			</div>
 		</div>
 
 		<div class="kanban-board" id="kanbanBoard">
@@ -64,11 +66,6 @@
 					</ul>
 				</div>
 			<?php endforeach; ?>
-		</div>
-
-		<!-- Button to add user -->
-		<div class="text-end my-3">
-			<button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
 		</div>
 
 	</div>
@@ -113,7 +110,8 @@
 						<div id="save_result"></div>
 						<button type="submit" class="btn btn-primary">Save Story</button>
 						<button class="btn btn-secondary" id="showCommentModal">Add Comment</button>
-						<button type="button" class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+						<button class="btn btn-info" id="showHistoryModal">View History</button>
+						<button type="button" class="btn btn-danger float-end " id="deleteStoryBtn">Delete Story</button>
 					</form>
 					<div class="comments-section">
 						<hr>
@@ -197,6 +195,36 @@
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 					<button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal for Viewing History -->
+	<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="historyModalLabel">History</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" style="max-height: 400px; overflow: auto;">
+					<div id="historyList"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal for Viewing All History -->
+	<div class="modal fade" id="allHistoryModal" tabindex="-1" aria-labelledby="allHistoryModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-scrollable modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="allHistoryModalLabel">All History</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" style="max-height: 400px; overflow: auto;">
+					<div id="allHistoryList"></div>
 				</div>
 			</div>
 		</div>

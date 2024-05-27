@@ -5405,18 +5405,13 @@ This ensures a user-friendly and safe way of deleting stories with confirmation 
 when opening a modal on top of an existing modal, the first modal doesnt fade out, but the document background fades out more. how to fix it
 ------------------------------------------------------------
 When you open a modal on top of an existing modal, the background fades more due to overlapping backdrops. To fix this issue, you can manage the z-index of the modals and their backdrops properly.
-
 Here's how you can achieve this:
-
 ### 1. Update `custom.js`
 You need to handle the z-index of the modals dynamically. Bootstrap provides events that are triggered when modals are shown or hidden, and you can use these events to adjust the z-index of the modals and their backdrops.
-
 Add the following code to your `custom.js` to manage the z-index:
-
 ```javascript
 $(document).ready(function () {
     // ... existing code ...
-
     // Manage z-index for multiple modals
     $('.modal').on('show.bs.modal', function () {
         const zIndex = 1040 + (10 * $('.modal:visible').length);
@@ -5425,29 +5420,24 @@ $(document).ready(function () {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
     });
-
     $('.modal').on('hidden.bs.modal', function () {
         if ($('.modal:visible').length) {
             // Adjust the backdrop z-index when closing a modal
             $('body').addClass('modal-open');
         }
     });
-
     // Attach click event to delete story button
     $('#deleteStoryBtn').on('click', function (e) {
         e.preventDefault();
         $('#deleteConfirmationModal').modal('show');
     });
-
     // Attach click event to confirm delete button in the confirmation modal
     $('#confirmDeleteBtn').on('click', function (e) {
         e.preventDefault();
         deleteStory();
     });
-
     // ... existing code ...
 });
-
 // Function to delete a story
 function deleteStory() {
     const filename = $('#storyFilename').val();
@@ -5463,12 +5453,633 @@ function deleteStory() {
     }, 'json');
 }
 ```
-
 ### Explanation
 - The `show.bs.modal` event is triggered when a modal is about to be shown. We calculate the new z-index for the modal and its backdrop based on the number of currently visible modals.
 - The `hidden.bs.modal` event is triggered when a modal is completely hidden. We re-add the `modal-open` class to the body if there are other visible modals, ensuring the backdrop remains correctly styled.
-
 ### Summary
 This code dynamically adjusts the z-index of modals and their backdrops, ensuring that each modal appears correctly on top of the previous one, and the background doesn't become overly faded.
-
 By managing the z-index properly, you can ensure a seamless user experience when dealing with multiple modals in Bootstrap.
+------------------------------------------------------------
+For each card similar to comments add a history of all actions done on the card, store the change as a date, user and string like added a comment, moved card to "done", "edited card", "attached file" etc. The history should be a modal that can be opened from the story edit modal like the comment modal.
+------------------------------------------------------------
+To add a history feature to each card and ensure it tracks actions such as adding a comment, moving a card to a different column, editing a card, and attaching a file, follow these steps:
+1. **Update the HTML for the Story Modal**:
+   Add a button to open the history modal in the story edit modal.
+2. **Create the History Modal**:
+   Add a new modal for displaying the history of actions related to the card.
+3. **Modify Backend Scripts**:
+   Update the PHP scripts to log actions into the card's history.
+4. **Update the JavaScript**:
+   Add functions to handle displaying history, saving history, and managing the history modal.
+### Step 1: Update the HTML for the Story Modal
+Add a button to open the history modal in the story edit modal:
+```html
+<!-- Modal for Adding/Editing Stories -->
+<div class="modal modal-lg fade" id="storyModal" tabindex="-1" aria-labelledby="storyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="storyModalLabel">Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Story Form -->
+                <!-- Existing form fields -->
+                <button class="btn btn-secondary" id="showHistoryModal">View History</button>
+            </div>
+        </div>
+    </div>
+</div>
+```
+### Step 2: Create the History Modal
+Add a new modal for displaying the history of actions related to the card:
+```html
+<!-- Modal for Viewing History -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historyModalLabel">History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+### Step 3: Modify Backend Scripts
+Update the PHP scripts to log actions into the card's history.
+#### `save_story.php`
+Add history logging for saving and editing stories:
+```php
+<?php
+include_once 'settings.php';
+function create_slug($string) {
+    $slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
+    return $slug;
+}
+function log_history($story, $action, $user) {
+    $story['history'][] = [
+        'action' => $action,
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    return $story;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['title'];
+    $text = $_POST['text'];
+    $owner = $_POST['owner'];
+    $backgroundColor = $_POST['backgroundColor'];
+    $textColor = $_POST['textColor'];
+    $filename = $_POST['filename'];
+    $created = $lastUpdated = date('Y-m-d H:i:s');
+    $column = 'to-do';
+    $order = $_POST['order'] ?? 0;
+    if (empty($filename)) {
+        $filename = create_slug($title) . '_' . time() . '.json';
+        $story = [
+            'column' => $column,
+            'order' => $order,
+            'title' => $title,
+            'text' => $text,
+            'owner' => $owner,
+            'backgroundColor' => $backgroundColor,
+            'textColor' => $textColor,
+            'created' => $created,
+            'lastUpdated' => $lastUpdated,
+            'comments' => [],
+            'files' => [],
+            'history' => []
+        ];
+        $story = log_history($story, 'Created story', $_SESSION['user']);
+    } else {
+        $filepath = $cardsDir . '/' . $filename;
+        if (file_exists($filepath)) {
+            $story = json_decode(file_get_contents($filepath), true);
+            $created = $story['created'];
+            $column = $story['column'];
+            $comments = $story['comments'];
+            $files = $story['files'];
+        }
+        $story['title'] = $title;
+        $story['text'] = $text;
+        $story['owner'] = $owner;
+        $story['backgroundColor'] = $backgroundColor;
+        $story['textColor'] = $textColor;
+        $story['lastUpdated'] = $lastUpdated;
+        $story = log_history($story, 'Edited story', $_SESSION['user']);
+    }
+    if (!empty($_FILES['files']['name'][0])) {
+        foreach ($_FILES['files']['name'] as $key => $file_name) {
+            $file_tmp = $_FILES['files']['tmp_name'][$key];
+            $file_dest = $cardsDir . '/uploads/' . $file_name;
+            if (move_uploaded_file($file_tmp, $file_dest)) {
+                $story['files'][] = [
+                    'filename' => $file_name,
+                    'owner' => $_SESSION['user']
+                ];
+                $story = log_history($story, 'Attached file: ' . $file_name, $_SESSION['user']);
+            }
+        }
+    }
+    file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
+    $story['filename'] = $filename;
+    echo json_encode($story);
+}
+?>
+```
+#### `save_comment.php`
+Add history logging for adding and editing comments:
+```php
+<?php
+include_once 'settings.php';
+function log_history($story, $action, $user) {
+    $story['history'][] = [
+        'action' => $action,
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    return $story;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $storyFilename = $_POST['storyFilename'];
+    $commentId = $_POST['id'];
+    $text = $_POST['text'];
+    $user = $_SESSION['user'];
+    $timestamp = date('Y-m-d H:i:s');
+    $filePath = $cardsDir . '/' . $storyFilename;
+    if (file_exists($filePath)) {
+        $story = json_decode(file_get_contents($filePath), true);
+        if (!isset($story['comments'])) {
+            $story['comments'] = [];
+        }
+        if (empty($commentId)) {
+            $commentId = uniqid();
+            $story['comments'][] = [
+                'id' => $commentId,
+                'text' => $text,
+                'user' => $user,
+                'timestamp' => $timestamp,
+            ];
+            $story = log_history($story, 'Added comment', $user);
+            $isNew = true;
+        } else {
+            foreach ($story['comments'] as &$comment) {
+                if ($comment['id'] === $commentId) {
+                    $comment['text'] = $text;
+                    $comment['timestamp'] = $timestamp;
+                    $story = log_history($story, 'Edited comment', $user);
+                    break;
+                }
+            }
+            $isNew = false;
+        }
+        file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT));
+        echo json_encode([
+            'id' => $commentId,
+            'text' => $text,
+            'user' => $user,
+            'timestamp' => $timestamp,
+            'storyFilename' => $storyFilename,
+            'isNew' => $isNew,
+        ]);
+    }
+}
+?>
+```
+#### `update_story_column.php`
+Add history logging for moving cards between columns:
+```php
+<?php
+include_once 'settings.php';
+function log_history($story, $action, $user) {
+    $story['history'][] = [
+        'action' => $action,
+        'user' => $user,
+        'timestamp' => date('Y-m-d H:i:s')
+    ];
+    return $story;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fileName = $_POST['filename'];
+    $column = $_POST['column'];
+    $order = $_POST['order'];
+    $filePath = $cardsDir . '/' . $fileName;
+    if (file_exists($filePath)) {
+        $story = json_decode(file_get_contents($filePath), true);
+        $dontUpdateTime = false;
+        if ($story['column'] === $column) {
+            $dontUpdateTime = true;
+        }
+        $story['column'] = $column;
+        $story['order'] = $order;
+        if (!$dontUpdateTime) {
+            $story['lastUpdated'] = date('Y-m-d H:i:s');
+        }
+        $story = log_history($story, 'Moved card to ' . $column, $_SESSION['user']);
+        file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT));
+        echo json_encode($story);
+    }
+}
+?>
+```
+### Step 4: Update the JavaScript
+Add functions to handle displaying history, saving history, and managing the history modal.
+#### `custom.js`
+Add the following functions to handle history:
+```javascript
+function createHistoryHtml(history) {
+    const historyTime = formatRelativeTime(history.timestamp);
+    return `
+        <div class="history-entry mb-2">
+            <p>${history.action}</p>
+            <p><strong>${history.user}</strong> <span title="${moment.utc(history.timestamp).local().format('LLLL')}">${historyTime}</span></p>
+        </div>`;
+}
+function showHistoryModal(event, storyFilename) {
+    event.stopPropagation();
+    fetch(`${cardsDirName}/${storyFilename}`)
+        .then(response => response.json())
+        .then(story => {
+            const historyList = $('#historyList');
+            historyList.empty(); // Clear existing history
+            if (story.history) {
+                story.history.forEach(entry => {
+                    historyList.append(createHistoryHtml(entry));
+                });
+            }
+            $('#historyModal').modal('show');
+        })
+        .catch(error => console.error('Error loading history:', error));
+}
+$(document).ready(function () {
+    // Existing initialization code...
+    $('#showHistoryModal').on('click', function (e) {
+        e.preventDefault();
+        showHistoryModal(e, $('#storyFilename').val());
+    });
+    // Existing event listeners...
+});
+```
+### Step 5: Test Everything
+Ensure that the new history feature works by:
+- Creating, editing, and deleting stories.
+- Adding, editing, and deleting comments.
+- Moving cards between columns.
+- Attaching and deleting files.
+- Viewing the history modal to confirm that all actions are logged correctly.
+By following these steps, you will successfully add a history feature to your Git Kanban Board, allowing users to track all actions taken on each card.
+------------------------------------------------------------
+Add a button that will open a modal that will scan all cards and show all the history sorted by most recent at the top. It should contain the story title and the changes and user.
+------------------------------------------------------------
+To add a button that opens a modal to scan all cards and show all history sorted by the most recent at the top, follow these steps:
+1. **Update the HTML**: Add a button to the main page to open the history modal and create the history modal.
+2. **Update the JavaScript**: Add functions to handle fetching and displaying the history for all cards.
+3. **Update Backend Scripts**: Create a new PHP script to fetch all histories.
+### Step 1: Update the HTML
+Add a button to the main page to open the history modal and create the history modal.
+```html
+<!-- Button to open history modal -->
+<div class="text-end my-3">
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+    <button class="btn btn-info" id="showAllHistoryBtn">View All History</button>
+</div>
+<!-- Modal for Viewing All History -->
+<div class="modal fade" id="allHistoryModal" tabindex="-1" aria-labelledby="allHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allHistoryModalLabel">All History</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="allHistoryList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+### Step 2: Update the JavaScript
+Add functions to handle fetching and displaying the history for all cards.
+#### `custom.js`
+Add the following functions:
+```javascript
+function createAllHistoryHtml(history) {
+    const historyTime = formatRelativeTime(history.timestamp);
+    return `
+        <div class="history-entry mb-2">
+            <p><strong>${history.title}</strong> - ${history.action}</p>
+            <p><strong>${history.user}</strong> <span title="${moment.utc(history.timestamp).local().format('LLLL')}">${historyTime}</span></p>
+        </div>`;
+}
+function showAllHistoryModal() {
+    $.get('fetch_all_history.php', function (data) {
+        const histories = JSON.parse(data);
+        const allHistoryList = $('#allHistoryList');
+        allHistoryList.empty(); // Clear existing history
+        histories.forEach(entry => {
+            allHistoryList.append(createAllHistoryHtml(entry));
+        });
+        $('#allHistoryModal').modal('show');
+    });
+}
+$(document).ready(function () {
+    // Existing initialization code...
+    $('#showAllHistoryBtn').on('click', function (e) {
+        e.preventDefault();
+        showAllHistoryModal();
+    });
+    // Existing event listeners...
+});
+```
+### Step 3: Update Backend Scripts
+Create a new PHP script to fetch all histories.
+#### `fetch_all_history.php`
+```php
+<?php
+include_once 'settings.php';
+$allHistories = [];
+foreach (glob($cardsDir . '/*.json') as $filePath) {
+    $story = json_decode(file_get_contents($filePath), true);
+    if (isset($story['history'])) {
+        foreach ($story['history'] as $history) {
+            $history['title'] = $story['title'];
+            $allHistories[] = $history;
+        }
+    }
+}
+// Sort histories by most recent first
+usort($allHistories, function ($a, $b) {
+    return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+});
+echo json_encode($allHistories);
+?>
+```
+### Step 4: Test Everything
+Ensure that the new feature works by:
+- Clicking the "View All History" button.
+- Verifying that the modal displays all history entries sorted by the most recent at the top.
+- Confirming that each entry shows the story title, action, user, and timestamp.
+By following these steps, you will successfully add a feature to your Git Kanban Board that allows users to view all history entries for all cards, sorted by the most recent changes at the top.
+------------------------------------------------------------
+Add button to archive a story, the story will not show up unless the user clicks on the show Archived stories. Archived stories should have a label that shows this. User can unarchive an archived story.
+------------------------------------------------------------
+To add the functionality for archiving and unarchiving stories in your Kanban board, you need to make several changes across your HTML, JavaScript, and PHP files. Below are the steps to achieve this:
+
+### 1. Update `index.php` to Add Archive Button and Filter Option
+
+Update your HTML to include an archive button for each story and a button to toggle the view of archived stories.
+
+```html
+<!-- Add this inside the <div> where the story buttons are located -->
+<div class="my-3 d-inline-block float-end">
+    <a href="logout.php" class="btn btn-danger">Log Out</a>
+    <button class="btn btn-primary" id="addStoryBtn">Add Story</button>
+    <button class="btn btn-secondary" id="toggleArchivedBtn">Show Archived Stories</button>
+</div>
+```
+
+### 2. Update `custom.js` to Handle Archiving and Unarchiving
+
+Add functions to handle archiving and filtering archived stories.
+
+```javascript
+function loadStories(showArchived = false) {
+    $.get('load_stories.php', { showArchived: showArchived }, function (data) {
+        const stories = JSON.parse(data);
+        // Group stories by column
+        const groupedStories = stories.reduce((acc, story) => {
+            if (!acc[story.column]) {
+                acc[story.column] = [];
+            }
+            acc[story.column].push(story);
+            return acc;
+        }, {});
+        // Iterate through each column
+        Object.keys(groupedStories).forEach(column => {
+            // Sort stories by order within each column
+            groupedStories[column].sort((a, b) => a.order - b.order);
+            // Append sorted stories to the respective column
+            groupedStories[column].forEach(story => {
+                const card = createCard(story);
+                $(`.kanban-column-ul[data-column="${column}"]`).append(card);
+            });
+        });
+    });
+}
+
+function createCard(story) {
+    const createdTime = formatRelativeTime(story.created);
+    const updatedTime = formatRelativeTime(story.lastUpdated);
+    const numComments = story.comments ? story.comments.length : 0;
+    const numFiles = story.files ? story.files.length : 0;
+
+    let numCommentsText = '';
+    if (numComments > 0) {
+        numCommentsText = numComments === 1 ? '1 Comment <br>' : `${numComments} Comments <br>`;
+    }
+
+    let numFilesText = '';
+    if (numFiles > 0) {
+        numFilesText = numFiles === 1 ? '1 File <br>' : `${numFiles} Files <br>`;
+    }
+
+    let truncatedText;
+    if (story.text.length > 128) {
+        const words = story.text.split(' ');
+        let charCount = 0;
+        truncatedText = '';
+        for (const word of words) {
+            if ((charCount + word.length + 1) > 128) {
+                truncatedText += '...';
+                break;
+            }
+            truncatedText += (truncatedText.length ? ' ' : '') + word;
+            charCount += word.length + 1;
+        }
+    } else {
+        truncatedText = story.text;
+    }
+
+    const archiveButton = story.archived ?
+        `<button class="btn btn-sm btn-warning" onclick="unarchiveStory(event, '${story.filename}')">Unarchive</button>` :
+        `<button class="btn btn-sm btn-secondary" onclick="archiveStory(event, '${story.filename}')">Archive</button>`;
+
+    const archivedLabel = story.archived ? '<span class="badge bg-secondary">Archived</span> ' : '';
+
+    return `
+        <li data-filename="${story.filename}" onclick="editStory('${story.filename}')" style="cursor:pointer;">
+            <div class="kanban-card" data-filename="${story.filename}" style="background-color: ${story.backgroundColor}; color: ${story.textColor}">
+                <button class="btn btn-sm btn-info move-to-top-btn" onclick="moveToTop(event, '${story.filename}')">Top</button>
+                ${archivedLabel}
+                <h5>${story.title}</h5>
+                <p>${truncatedText}</p>
+                <p>
+                    <strong>Owner:</strong> ${story.owner} <br>
+                    ${numCommentsText}${numFilesText}
+                    <strong>Created:</strong> <span title="${moment.utc(story.created).local().format('LLLL')}">${createdTime}</span> <br>
+                    <strong>Updated:</strong> <span title="${moment.utc(story.lastUpdated).local().format('LLLL')}">${updatedTime}</span>
+                </p>
+                ${archiveButton}
+            </div>
+        </li>`;
+}
+
+function archiveStory(event, filename) {
+    event.stopPropagation();
+    $.post('archive_story.php', { filename: filename, archived: true }, function (response) {
+        if (response.success) {
+            $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+        }
+    }, 'json');
+}
+
+function unarchiveStory(event, filename) {
+    event.stopPropagation();
+    $.post('archive_story.php', { filename: filename, archived: false }, function (response) {
+        if (response.success) {
+            $(`.kanban-card[data-filename="${filename}"]`).closest('li').remove();
+        }
+    }, 'json');
+}
+
+$('#toggleArchivedBtn').on('click', function (e) {
+    e.preventDefault();
+    const isShowingArchived = $(this).text() === 'Show Archived Stories';
+    $(this).text(isShowingArchived ? 'Hide Archived Stories' : 'Show Archived Stories');
+    loadStories(isShowingArchived);
+});
+
+$(document).ready(function () {
+    // Existing code...
+
+    // Load stories initially without archived ones
+    loadStories(false);
+});
+```
+
+### 3. Update `load_stories.php` to Filter Archived Stories
+
+Modify the `load_stories.php` to optionally load archived stories based on a query parameter.
+
+```php
+<?php
+include_once 'settings.php';
+
+$showArchived = isset($_GET['showArchived']) && $_GET['showArchived'] == 'true';
+
+$stories = [];
+foreach (glob($cardsDir . '/*.json') as $file) {
+    $story = json_decode(file_get_contents($file), true);
+    if ($showArchived || !$story['archived']) {
+        $stories[] = $story;
+    }
+}
+
+echo json_encode($stories);
+?>
+```
+
+### 4. Create `archive_story.php` to Handle Archiving
+
+Create a new PHP file `archive_story.php` to handle archiving and unarchiving stories.
+
+```php
+<?php
+include_once 'settings.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filename = $_POST['filename'];
+    $archived = filter_var($_POST['archived'], FILTER_VALIDATE_BOOLEAN);
+    $filePath = $cardsDir . '/' . $filename;
+
+    if (file_exists($filePath)) {
+        $story = json_decode(file_get_contents($filePath), true);
+        $story['archived'] = $archived;
+        file_put_contents($filePath, json_encode($story, JSON_PRETTY_PRINT));
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Story not found']);
+    }
+}
+?>
+```
+
+### 5. Update `save_story.php` to Include Archived Flag
+
+Ensure that the `save_story.php` script initializes the `archived` field.
+
+```php
+<?php
+include_once 'settings.php';
+
+function create_slug($string) {
+    $slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
+    return $slug;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['title'];
+    $text = $_POST['text'];
+    $owner = $_POST['owner'];
+    $backgroundColor = $_POST['backgroundColor'];
+    $textColor = $_POST['textColor'];
+    $filename = $_POST['filename'];
+    $created = $lastUpdated = date('Y-m-d H:i:s');
+    $column = 'to-do';
+    $order = $_POST['order'] ?? 0;
+    $archived = false;
+
+    if (empty($filename)) {
+        $filename = create_slug($title) . '_' . time() . '.json';
+    } else {
+        $filepath = $cardsDir . '/' . $filename;
+        if (file_exists($filepath)) {
+            $existingStory = json_decode(file_get_contents($filepath), true);
+            $created = $existingStory['created'];
+            $column = $existingStory['column'];
+            $comments = $existingStory['comments'] ?? [];
+            $files = $existingStory['files'] ?? [];
+            $archived = $existingStory['archived'] ?? false;
+        }
+    }
+
+    $story = [
+        'column' => $column,
+        'order' => $order,
+        'title' => $title,
+        'text' => $text,
+        'owner' => $owner,
+        'backgroundColor' => $backgroundColor,
+        'textColor' => $textColor,
+        'created' => $created,
+        'lastUpdated' => $lastUpdated,
+        'comments' => $comments ?? [],
+        'files' => $files ?? [],
+        'archived' => $archived
+    ];
+
+    if (!empty($_FILES['files']['name'][0])) {
+        foreach ($_FILES['files']['name'] as $key => $file_name) {
+            $file_tmp = $_FILES['files']['tmp_name'][$key];
+            $file_dest = $cardsDir . '/uploads/' . $file_name;
+            if (move_uploaded_file($file_tmp, $file_dest)) {
+                $story['files'][] = [
+                    'filename' => $file_name,
+                    'owner' => $_SESSION['user']
+                ];
+            }
+        }
+    }
+
+    file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));
+    $story['filename'] = $filename;
+    echo json_encode($story);
+}
+?>
+```
+
+With these changes, you can now archive and unarchive stories, and toggle the visibility of archived stories on your Kanban board.

@@ -5,6 +5,7 @@
 		$storyFilename = $_POST['storyFilename'];
 		$delete_filename = $_POST['filename'];
 		$delete_filePath = $cardsDir . '/uploads/' . $delete_filename;
+		$user = $_SESSION['user'];
 
 		if (file_exists($delete_filePath)) {
 			unlink($delete_filePath); // Delete the file
@@ -16,6 +17,7 @@
 			$story['files'] = array_values(array_filter($story['files'], function ($file) use ($delete_filename) {
 				return $file['filename'] !== $delete_filename;
 			}));
+			$story = log_history($story, 'Deleted file '.$delete_filename, $user);
 			file_put_contents($storyfile_path, json_encode($story, JSON_PRETTY_PRINT));
 		}
 

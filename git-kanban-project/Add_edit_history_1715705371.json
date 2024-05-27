@@ -1,13 +1,20 @@
 {
-    "column": "to-do",
-    "order": 0,
+    "column": "finished",
+    "order": "3",
     "title": "Add edit history",
     "text": "In a separate JSON file, add edit history for all actions performed on the project. Add a button that will show the project history.",
     "owner": "Ekim",
     "backgroundColor": "#AECBFA",
     "textColor": "#000000",
     "created": "2024-05-14 16:49:31",
-    "lastUpdated": "2024-05-22 04:47:25",
+    "lastUpdated": "2024-05-27 14:37:34",
     "comments": [],
-    "files": []
+    "files": [],
+    "history": [
+        {
+            "action": "Moved card to finished",
+            "user": "Ekim",
+            "timestamp": "2024-05-27 14:37:34"
+        }
+    ]
 }

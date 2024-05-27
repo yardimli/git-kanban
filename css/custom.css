@@ -7,6 +7,7 @@
     --modal-background: #fff;
     --modal-header-background: #f8f9fa;
     --modal-text-color: #000;
+    --modal-border-bottom-color:#dee2e6;
     --input-background: #fff;
     --input-text-color: #000;
     --input-border-color: #ced4da;
@@ -24,6 +25,7 @@ body.dark-mode {
     --modal-background: #2c2c2c;
     --modal-header-background: #333;
     --modal-text-color: #fff;
+    --modal-border-bottom-color:#444;
     --input-background: #333;
     --input-text-color: #fff;
     --input-border-color: #444;
@@ -80,6 +82,18 @@ body {
     display: block;
 }
 
+.kanban-card .archive-btn {
+    display: none;
+    position: absolute;
+    top: 5px;
+    right: 55px;
+    z-index: 10;
+}
+
+.kanban-card:hover .archive-btn {
+    display: block;
+}
+
 
 /* Modal styles */
 
@@ -92,6 +106,7 @@ body {
 .modal-header {
     background-color: var(--modal-header-background);
     color: var(--modal-text-color);
+    border-bottom: 1px solid var(--modal-border-bottom-color);
 }
 
 

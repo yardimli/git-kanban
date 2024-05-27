@@ -6,6 +6,18 @@
     "backgroundColor": "#F28B82",
     "textColor": "#000000",
     "created": "2024-05-16 10:01:02",
-    "lastUpdated": "2024-05-17 08:05:48",
-    "order": "2"
+    "lastUpdated": "2024-05-27 14:37:44",
+    "order": "1",
+    "history": [
+        {
+            "action": "Moved card to finished",
+            "user": "Ekim",
+            "timestamp": "2024-05-27 14:37:41"
+        },
+        {
+            "action": "Moved card to to-do",
+            "user": "Ekim",
+            "timestamp": "2024-05-27 14:37:44"
+        }
+    ]
 }

@@ -2,6 +2,7 @@
 	include_once 'settings.php';
 
 	$stories = [];
+	$showArchived = isset($_GET['showArchived']) && $_GET['showArchived'] == 'true';
 
 	if (is_dir($cardsDir)) {
 		$files = scandir($cardsDir);
@@ -14,6 +15,9 @@
 				// Check if json_decode succeeded
 				if (json_last_error() === JSON_ERROR_NONE) {
 					$story['filename'] = $file;
+					if (!isset($story['archived'])) {
+						$story['archived'] = false;
+					}
 
 					// Check if column is in the columns array; if not, change it to the first column in the array
 					$columnExists = false;
@@ -27,23 +31,27 @@
 						$story['column'] = $columns[0]['id'];
 					}
 
-					$stories[] = $story;
+					if ($showArchived || !$story['archived']) {
+						$stories[] = $story;
+					}
 				} else
 				{
 					//add a story with an error message about the broken file
-					$stories[] = [
-						'column' => 'to-do',
-						'order' => 0,
-						'title' => 'Error',
-						'text' => 'The file ' . $file . ' is broken and cannot be displayed.',
-						'owner' => 'System',
-						'backgroundColor' => '#ff0000',
-						'textColor' => '#ffffff',
-						'created' => date('Y-m-d H:i:s'),
-						'lastUpdated' => date('Y-m-d H:i:s'),
-						'filename' => $file,
-						'comments' => [],
-					];
+					if ($showArchived || !$story['archived']) {
+						$stories[] = [
+							'column' => 'to-do',
+							'order' => 0,
+							'title' => 'Error',
+							'text' => 'The file ' . $file . ' is broken and cannot be displayed.',
+							'owner' => 'System',
+							'backgroundColor' => '#ff0000',
+							'textColor' => '#ffffff',
+							'created' => date('Y-m-d H:i:s'),
+							'lastUpdated' => date('Y-m-d H:i:s'),
+							'filename' => $file,
+							'comments' => [],
+						];
+					}
 				}
 			}
 		}

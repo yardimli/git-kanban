@@ -1,11 +1,6 @@
 <?php
 	include_once 'settings.php';
 
-	function create_slug($string) {
-		$slug = preg_replace('/[^A-Za-z0-9-]+/', '-', $string);
-		return $slug;
-	}
-
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$title = $_POST['title'];
 		$text = $_POST['text'];
@@ -16,10 +11,13 @@
 		$created = $lastUpdated = date('Y-m-d H:i:s');
 		$column = 'to-do';
 		$order = $_POST['order'] ?? 0;
+		$new_story = true;
+		$archived = false;
 
 		if (empty($filename)) {
 			$filename = create_slug($title) . '_' . time() . '.json';
 		} else {
+			$new_story = false;
 			$filepath = $cardsDir . '/' . $filename;
 			if (file_exists($filepath)) {
 				$existingStory = json_decode(file_get_contents($filepath), true);
@@ -27,6 +25,8 @@
 				$column = $existingStory['column'];
 				$comments = $existingStory['comments'] ?? [];
 				$files = $existingStory['files'] ?? [];
+				$history = $existingStory['history'] ?? [];
+				$archived = $existingStory['archived'] ?? false;
 			}
 		}
 
@@ -41,7 +41,9 @@
 			'created' => $created,
 			'lastUpdated' => $lastUpdated,
 			'comments' => $comments ?? [],
-			'files' => $files ?? []
+			'files' => $files ?? [],
+			'history' => $history ?? [],
+			'archived' => $archived
 		];
 
 		if (!empty($_FILES['files']['name'][0])) {
@@ -55,6 +57,12 @@
 					];
 				}
 			}
+		}
+
+		if ($new_story) {
+			$story = log_history($story, 'Created story', $_SESSION['user']);
+		} else {
+			$story = log_history($story, 'Edited story', $_SESSION['user']);
 		}
 
 		file_put_contents($cardsDir . '/' . $filename, json_encode($story, JSON_PRETTY_PRINT));

@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "0",
+    "order": "1",
     "title": "All History Modal",
     "text": "Add a button that will open a modal that will scan all cards and show all the history sorted by most recent at the top. It should contain the story title and the changes and user.\r\n",
     "owner": "Ekim",

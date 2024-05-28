@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "2",
+    "order": "3",
     "title": "Archive Story",
     "text": "Add button to archive a story, the story will not show up unless the user clicks on the show Archived stories. Archived stories should have a label that shows this. User can unarchive an archived story.",
     "owner": "Ekim",

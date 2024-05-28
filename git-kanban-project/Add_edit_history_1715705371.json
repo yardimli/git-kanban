@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "3",
+    "order": "4",
     "title": "Add edit history",
     "text": "In a separate JSON file, add edit history for all actions performed on the project. Add a button that will show the project history.",
     "owner": "Ekim",

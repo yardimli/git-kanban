@@ -1,6 +1,6 @@
 {
     "column": "finished",
-    "order": "14",
+    "order": "15",
     "title": "Move to Top",
     "text": "when hovering on a stroy card show a button that says \"move to top\"",
     "owner": "Ekim",

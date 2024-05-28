@@ -12,6 +12,16 @@
 
 	$autoLoginUser = ''; //leave this empty if you want to allow all users to login
 
+	// Define default columns
+	$columns = [
+		['id' => 'parking-lot', 'title' => 'Parking-Lot'],
+		['id' => 'to-do', 'title' => 'To-Do'],
+		['id' => 'in-progress', 'title' => 'In-Progress'],
+		['id' => 'finished', 'title' => 'Finished'],
+	];
+
+	$defaultColumn = 'to-do';
+
 	$colorOptions = [
 		['background' => '#F28B82', 'text' => '#000000'],
 		['background' => '#FBBC04', 'text' => '#000000'],
@@ -26,16 +36,6 @@
 		['background' => '#E8EAED', 'text' => '#000000'],
 		['background' => '#FFFFFF', 'text' => '#000000']
 	];
-
-// Define default columns
-	$columns = [
-		['id' => 'parking-lot', 'title' => 'Parking-Lot'],
-		['id' => 'to-do', 'title' => 'To-Do'],
-		['id' => 'in-progress', 'title' => 'In-Progress'],
-		['id' => 'finished', 'title' => 'Finished'],
-	];
-
-	$defaultColumn = 'to-do';
 
 	//------------------DO NOT MODIFY BELOW THIS LINE------------------
 	$cardsDir = __DIR__ . '/' . $cardsDirName;

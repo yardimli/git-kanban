@@ -4401,7 +4401,7 @@ Add file input in the story modal and a section to display uploaded files:
         <hr>
         <div class="files-section">
           <h5>Files</h5>
-          <div id="filesList"></div>
+          <div id="UploadFilesList"></div>
         </div>
       </div>
     </div>

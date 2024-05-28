@@ -49,16 +49,16 @@
 	}
 
 
-	if ($autoLoginUser !== '' && basename($_SERVER['PHP_SELF']) === 'login.php') {
+	if ($autoLoginUser !== '') {
 		$_SESSION['user'] = $autoLoginUser;
 		header('Location: index.php');
 		exit();
 	}
 
 	if (empty($_SESSION['user'])) {
-		//dont redirect to login.php if the request url is alread login.php
-		if (basename($_SERVER['PHP_SELF']) !== 'login.php') {
-			header('Location: login.php');
+		$post_action = $_POST['action'] ?? '';
+		if ($post_action !== 'login') {
+			header('Location: login.html');
 			exit();
 		}
 	}

@@ -7,12 +7,17 @@
     --modal-background: #fff;
     --modal-header-background: #f8f9fa;
     --modal-text-color: #000;
-    --modal-border-bottom-color:#dee2e6;
+    --modal-border-bottom-color: #dee2e6;
     --input-background: #fff;
     --input-text-color: #000;
     --input-border-color: #ced4da;
     --alert-success-background: #d4edda;
     --alert-success-text: #155724;
+
+    --scrollbar-width: 8px;
+    --scrollbar-track-color: #f4f4f4;
+    --scrollbar-thumb-color: #ced4da;
+    --scrollbar-thumb-hover-color: #a1a1a1;
 }
 
 
@@ -25,19 +30,43 @@ body.dark-mode {
     --modal-background: #2c2c2c;
     --modal-header-background: #333;
     --modal-text-color: #fff;
-    --modal-border-bottom-color:#444;
+    --modal-border-bottom-color: #444;
     --input-background: #333;
     --input-text-color: #fff;
     --input-border-color: #444;
     --alert-success-background: #155724;
     --alert-success-text: #d4edda;
-}
 
+    --scrollbar-track-color: #333;
+    --scrollbar-thumb-color: #555;
+    --scrollbar-thumb-hover-color: #777;
+}
 
 body {
     background-color: var(--background-color);
     color: var(--text-color);
 }
+
+::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-color);
+    border-radius: 10px;
+    border: 2px solid var(--scrollbar-track-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover-color);
+}
+
+
 
 .kanban-board {
     display: flex;

@@ -29,17 +29,19 @@
 		const users = <?php echo json_encode(array_column($users, 'username')); ?>;
 		var currentUser = "<?php echo $_SESSION['user']; ?>";
 		var defaultColumn = "<?php echo $defaultColumn; ?>";
-
 	</script>
 </head>
 <body>
 <header>
+	<form id="logoutForm" action="action.php" method="POST" class="d-none">
+		<input type="hidden" name="action" value="logout">
+	</form>
 	<div class="container-fluid mt-2">
 		<button class="btn btn-info float-start me-2" id="showAllHistoryBtn" title="show all history"><i class="bi bi-clock-history"></i></button>
 		<button class="btn btn-secondary float-start me-2" data-bs-toggle="modal" data-bs-target="#addUserModal" title="add user modal"><i class="bi bi-person"></i></button>
 		<button class="btn btn-info float-start me-2" id="toggleArchivedBtn"><i class="bi bi-archive"></i></button>
 
-		<a href="logout.php" class="btn btn-danger  float-end ms-2" title="Log out"><i class="bi bi-door-open"></i></a>
+		<a href="#" class="btn btn-danger float-end ms-2" title="Log out" onclick="document.getElementById('logoutForm').submit();"><i class="bi bi-door-open"></i></a>
 		<button id="modeToggleBtn" class="btn btn-secondary float-end ms-2">
 			<i id="modeIcon" class="bi bi-sun"></i>
 		</button>
@@ -118,10 +120,10 @@
 						<h5>Comments</h5>
 						<div id="commentsList"></div>
 					</div>
-					<div class="files-section">
+					<div class="upload-files-section">
 						<hr>
 						<h5>Files</h5>
-						<div id="filesList" class="row"></div>
+						<div id="UploadFilesList" class="row"></div>
 					</div>
 				</div>
 			</div>

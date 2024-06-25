@@ -51,14 +51,12 @@
 
 	if ($autoLoginUser !== '') {
 		$_SESSION['user'] = $autoLoginUser;
-		header('Location: index.html');
-		exit();
 	}
 
 	if (empty($_SESSION['user'])) {
 		$post_action = $_POST['action'] ?? '';
 		if ($post_action !== 'login') {
-			header('Location: login.html');
+			echo json_encode(['success' => false, 'message' => 'No Session Found. Not logged in.']);
 			exit();
 		}
 	}
@@ -84,7 +82,7 @@
 
 		$storyFilename = $_POST['storyFilename'] ?? null;
 		$storyFilePath = $cardsDir . '/' . $storyFilename;
-		$user = $_SESSION['user'];
+		$user = $_SESSION['user'] ?? '';
 		$id = $_POST['id'] ?? null;
 		$uploadFilename = $_POST['uploadFilename'] ?? null;
 
@@ -92,6 +90,7 @@
 
 			case 'fetch_initial_data':
 				echo json_encode([
+					'success' => true,
 					'colorOptions' => $colorOptions,
 					'cardsDirName' => $cardsDirName,
 					'users' => array_column($users, 'username'),

@@ -1,0 +1,21 @@
+{
+    "column": "to-do",
+    "order": "1",
+    "title": "Clickable Links",
+    "text": "in the story text make links clickable open in new tab.",
+    "owner": "Ekim",
+    "backgroundColor": "#FDCFE8",
+    "textColor": "#000000",
+    "created": "2024-05-28 14:14:44",
+    "lastUpdated": "2024-05-28 14:14:44",
+    "comments": [],
+    "files": [],
+    "history": [
+        {
+            "action": "Created story",
+            "user": "Admin",
+            "timestamp": "2024-05-28 14:14:44"
+        }
+    ],
+    "archived": false
+}

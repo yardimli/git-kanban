@@ -1,0 +1,21 @@
+{
+    "column": "to-do",
+    "order": "0",
+    "title": "Email",
+    "text": "Send Email when a new story is added to the owner. Use Mailgun API and PHP standard email sending.",
+    "owner": "Admin",
+    "backgroundColor": "#FFF475",
+    "textColor": "#000000",
+    "created": "2024-05-28 14:18:28",
+    "lastUpdated": "2024-05-28 14:18:28",
+    "comments": [],
+    "files": [],
+    "history": [
+        {
+            "action": "Created story",
+            "user": "Admin",
+            "timestamp": "2024-05-28 14:18:28"
+        }
+    ],
+    "archived": false
+}

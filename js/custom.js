@@ -102,7 +102,7 @@ function showCommentModal(event, storyFilename) {
 	$('#commentId').val('');
 	$('#commentText').val('');
 	$('#commentModalLabel').text('Add Comment');
-	$('#commentModal').modal('show');
+	$('#commentModal').modal({backdrop: 'static', keyboard: true}).modal('show');
 }
 
 function editComment(event, commentId, storyFilename) {
@@ -113,7 +113,7 @@ function editComment(event, commentId, storyFilename) {
 	$('#commentId').val(commentId);
 	$('#commentText').val(commentText);
 	$('#commentModalLabel').text('Edit Comment');
-	$('#commentModal').modal('show');
+	$('#commentModal').modal({backdrop: 'static', keyboard: true}).modal('show');
 }
 
 function deleteComment(event, commentId, storyFilename) {
@@ -241,7 +241,7 @@ function editStory(storyFilename) {
 			}
 			updateUploadFilesList(story, storyFilename);
 			
-			$('#storyModal').modal('show');
+			$('#storyModal').modal({backdrop: 'static', keyboard: true}).modal('show');
 		})
 		.catch(error => console.error('Error loading story:', error));
 }
@@ -267,7 +267,7 @@ function addStory() {
 	//hide the add comment button
 	$('#showCommentModal').hide();
 	
-	$('#storyModal').modal('show');
+	$('#storyModal').modal({backdrop: 'static', keyboard: true}).modal('show');
 }
 
 function updateStoryColumn(storyFilename, newColumn, newOrder) {
@@ -461,84 +461,88 @@ $(document).ready(function () {
 		data: {action: 'fetch_initial_data'},
 		dataType: 'json',
 		success: function (data) {
-			window.colorOptions = data.colorOptions;
-			window.cardsDirName = data.cardsDirName;
-			window.users = data.users;
-			window.currentUser = data.currentUser;
-			window.defaultColumn = data.defaultColumn;
-			window.columns = data.columns;
-			
-			// Set the current user in the HTML
-			$('#currentUser').text(window.currentUser);
-			
-			// Populate the owner dropdown with existing users
-			const storyOwnerSelect = $('#storyOwner');
-			users.forEach(user => {
-				storyOwnerSelect.append(new Option(user, user));
-			});
-			
-			// Populate columns
-			for (let column of window.columns) {
-				$('#kanbanBoard').append(`
+			if (data.success === false) {
+				window.location.href = 'login.html?message='+data.message;
+			} else {
+				window.colorOptions = data.colorOptions;
+				window.cardsDirName = data.cardsDirName;
+				window.users = data.users;
+				window.currentUser = data.currentUser;
+				window.defaultColumn = data.defaultColumn;
+				window.columns = data.columns;
+				
+				// Set the current user in the HTML
+				$('#currentUser').text(window.currentUser);
+				
+				// Populate the owner dropdown with existing users
+				const storyOwnerSelect = $('#storyOwner');
+				users.forEach(user => {
+					storyOwnerSelect.append(new Option(user, user));
+				});
+				
+				// Populate columns
+				for (let column of window.columns) {
+					$('#kanbanBoard').append(`
                             <div class="kanban-column">
                                 <h3>${column.title}</h3>
                                 <ul class="kanban-column-ul" id="${column.id}-column" data-column="${column.id}"></ul>
                             </div>
                         `);
+				}
+				
+				// Initialize Sortable for each kanban column
+				$('.kanban-column-ul').each(function () {
+					new Sortable(this, {
+						group: 'kanban', // set the same group for all columns
+						animation: 150,
+						scroll: false,
+						onStart: function () {
+							isDragging = true;
+						},
+						onEnd: function (evt) {
+							isDragging = false;
+							
+							const item = evt.item;
+							const newColumn = $(item).closest('.kanban-column-ul').attr('data-column');
+							const storyFilename = $(item).attr('data-storyFilename');
+							const newOrder = $(item).index(); // Get the new index/order
+							
+							// Update the order of all items in the column
+							$(item).closest('.kanban-column-ul').children().each(function (index) {
+								const storyFilename = $(this).attr('data-storyFilename');
+								updateStoryColumn(storyFilename, newColumn, index);
+							});
+						}
+					});
+				});
+				
+				
+				// Create color buttons
+				const colorPalette = $('#colorPalette');
+				colorOptions.forEach(option => {
+					const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
+					button.on('click', function () {
+						$('#storyBackgroundColor').val(option.background);
+						$('#storyTextColor').val(option.text);
+						$('#colorPalette button').removeClass('active');
+						$(this).addClass('active');
+					});
+					colorPalette.append(button);
+				});
+				
+				//set default color
+				$('#colorPalette button').first().click();
+				
+				loadStories();
 			}
-			
-			// Initialize Sortable for each kanban column
-			$('.kanban-column-ul').each(function () {
-				new Sortable(this, {
-					group: 'kanban', // set the same group for all columns
-					animation: 150,
-					scroll: false,
-					onStart: function () {
-						isDragging = true;
-					},
-					onEnd: function (evt) {
-						isDragging = false;
-						
-						const item = evt.item;
-						const newColumn = $(item).closest('.kanban-column-ul').attr('data-column');
-						const storyFilename = $(item).attr('data-storyFilename');
-						const newOrder = $(item).index(); // Get the new index/order
-						
-						// Update the order of all items in the column
-						$(item).closest('.kanban-column-ul').children().each(function (index) {
-							const storyFilename = $(this).attr('data-storyFilename');
-							updateStoryColumn(storyFilename, newColumn, index);
-						});
-					}
-				});
-			});
-			
-			
-			// Create color buttons
-			const colorPalette = $('#colorPalette');
-			colorOptions.forEach(option => {
-				const button = $(`<button type="button" class="btn m-1" style="background-color: ${option.background}; color: ${option.text};">${option.text}</button>`);
-				button.on('click', function () {
-					$('#storyBackgroundColor').val(option.background);
-					$('#storyTextColor').val(option.text);
-					$('#colorPalette button').removeClass('active');
-					$(this).addClass('active');
-				});
-				colorPalette.append(button);
-			});
-			
-			//set default color
-			$('#colorPalette button').first().click();
-			
-			loadStories();
 			
 			
 		},
 		error: function (xhr, status, error) {
-			console.error('An error occurred while fetching initial data:', error);
+			//redirect to login page
+			window.location.href = 'login.html';
 		}
 	});
-	
 	
 	applyTheme(savedTheme);
 	
